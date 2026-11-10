@@ -20,3 +20,4 @@ backend/.env
 .uv-tools/
 backend/.ruff_cache/
 backend/models/
+docs/reports/codex-*.log

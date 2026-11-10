@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host localhost",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0",
+    "preview": "vite preview --host localhost",
     "format": "prettier --write src",
-    "dev:mock": "vite --host 0.0.0.0 --mode mock",
+    "dev:mock": "vite --host localhost --mode mock",
     "build:mock": "tsc --noEmit && vite build --mode mock"
   },
   "dependencies": {
