@@ -21,3 +21,9 @@ backend/.env
 backend/.ruff_cache/
 backend/models/
 docs/reports/codex-*.log
+.env
+.env.*
+!.env.example
+!frontend/.env.mock
+!frontend/.env.example
+!backend/.env.example
