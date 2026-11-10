@@ -3,8 +3,18 @@ import { cost, overdue, terminal } from '../../lib/format';
 import { workingHoursBetween } from '../../lib/business-time';
 import type { Analytics, AnalyticsFilters, Ticket } from '../../types';
 import { db, pause, clone, user, canRead } from './storage';
+import {
+  activity,
+  comparison,
+  periodBounds,
+  periodStats,
+  healthMatch,
+  stageMatch,
+  businessDate,
+  DAY,
+} from '../../lib/period-data';
 
-function cohort(days: number, userId: string): Ticket[] {
+export function cohort(days: number, userId: string): Ticket[] {
   const actor = user(userId);
   if (!['Руководитель', 'Администратор'].includes(actor.role))
     throw new Error('Аналитика доступна руководителю и администратору');
@@ -60,21 +70,65 @@ export async function getAnalytics(days: number, userId: string): Promise<Analyt
   const weekly = Array.from({ length: 10 }, (_, index) => {
     const start = new Date(+monday - (9 - index) * 7 * 86400000);
     const end = +start + 7 * 86400000;
+    const stats = periodStats(cohort(0, userId), +start, end, db.users);
     return {
       start: start.toISOString(),
-      incoming: tickets.filter(
-        (t) => Date.parse(t.createdAt) >= +start && Date.parse(t.createdAt) < end,
-      ).length,
-      done: tickets.filter(
-        (t) =>
-          t.implementedAt &&
-          Date.parse(t.implementedAt) >= +start &&
-          Date.parse(t.implementedAt) < end &&
-          ['Реализовано', 'Закрыто'].includes(t.status),
-      ).length,
+      fromDate: businessDate(start),
+      toDate: businessDate(new Date(end - DAY)),
+      incoming: stats.incoming,
+      done: stats.resolved,
+      confirmed: stats.confirmed,
+      savedHours: stats.savedHours,
     };
   });
+  const all = cohort(0, userId),
+    end = Date.now();
+  const start = days
+    ? end - days * DAY
+    : Math.min(end - 1, ...all.map((t) => Date.parse(t.createdAt)));
+  const metrics = comparison(
+    periodStats(all, start, end, db.users),
+    periodStats(all, start - (end - start), start, db.users),
+  );
+  const metricsWithSeries = Object.fromEntries(
+    Object.entries(metrics).map(([key, value]) => [
+      key,
+      {
+        ...value,
+        series: weekly.map(
+          (week) =>
+            week[key === 'resolved' ? 'done' : (key as 'incoming' | 'confirmed' | 'savedHours')],
+        ),
+      },
+    ]),
+  ) as Analytics['metrics'];
+  const funnel = [
+    ['incoming', 'Поступило'],
+    ['considered', 'Рассмотрено'],
+    ['work', 'В работе'],
+    ['implemented', 'Реализовано'],
+    ['confirmed', 'Подтверждено автором'],
+  ].map(([key, label]) => ({
+    key,
+    label,
+    value: tickets.filter((t) => stageMatch(t, key)).length,
+  }));
+  const deadlineHealth = catalogBase.departments.map((department) => ({
+    department,
+    ...Object.fromEntries(
+      ['onTime', 'soon', 'overdue'].map((key) => [
+        key,
+        tickets.filter((t) => user(t.assigneeId).department === department && healthMatch(t, key))
+          .length,
+      ]),
+    ),
+  })) as Analytics['deadlineHealth'];
   return clone({
+    metrics: metricsWithSeries,
+    funnel,
+    deadlineHealth: deadlineHealth
+      .filter((row) => row.onTime + row.soon + row.overdue)
+      .sort((a, b) => b.overdue - a.overdue || a.department.localeCompare(b.department)),
     total: tickets.length,
     openCount: tickets.filter((t) => !terminal(t)).length,
     overdueCount: tickets.filter(overdue).length,
@@ -119,8 +173,23 @@ export async function getAnalytics(days: number, userId: string): Promise<Analyt
 export async function getAnalyticsTickets(days: number, filters: AnalyticsFilters, userId: string) {
   await pause();
   return clone(
-    cohort(days, userId).filter(
+    cohort(filters.event ? 0 : days, userId).filter(
       (t) =>
+        (!filters.event ||
+          (() => {
+            const all = cohort(0, userId),
+              end = Date.now();
+            const start = days
+              ? end - days * DAY
+              : Math.min(end - 1, ...all.map((item) => Date.parse(item.createdAt)));
+            const [left, right] =
+              filters.fromDate && filters.toDate
+                ? periodBounds(filters.fromDate, filters.toDate)
+                : [start, end];
+            return activity(t, left, right, db.users)[filters.event!];
+          })()) &&
+        (!filters.stage || stageMatch(t, filters.stage)) &&
+        (!filters.health || healthMatch(t, filters.health)) &&
         (!filters.cluster || t.clusterId === filters.cluster) &&
         (!filters.type || t.type === filters.type) &&
         (!filters.authorDepartment || t.authorDepartment === filters.authorDepartment) &&

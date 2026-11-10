@@ -20,7 +20,7 @@ export function RecipientField({
 }) {
   const [editing, setEditing] = useState(false);
   return (
-    <section>
+    <section className="recipient-field">
       <h3>Получатель</h3>
       <ErrorMessage text={error} />
       {route ? <RoutingPreview route={route} /> : !error && <Loading />}

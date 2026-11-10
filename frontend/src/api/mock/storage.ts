@@ -34,6 +34,8 @@ export const ticket = (id: string) => {
 export const canManage = (u: User, t: Ticket) => manages(u, t, db.users);
 export const canRead = (u: User, t: Ticket) => reads(u, t, db.users);
 export function assertManager(u: User, t: Ticket) {
+  if (!canManage(u, t) && canRead(u, t))
+    throw new Error(`Решение по обращению принимает ответственный: ${user(t.assigneeId).name}`);
   if (!canManage(u, t))
     throw new Error('Действие доступно ответственному и руководителю его подразделения');
 }

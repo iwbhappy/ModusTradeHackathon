@@ -1,6 +1,8 @@
 import type {
   Analytics,
   AiStatus,
+  PeriodReport,
+  PeriodSummary,
   ManagerSummary,
   ResponseDraft,
   AnalyticsFilters,
@@ -75,6 +77,10 @@ export const generateSummary = (days: number, userId: string) =>
   post<ManagerSummary>(`/analytics/summary?${query({ days })}`, {}, userId);
 export const getAnalytics = (days: number, userId: string) =>
   request<Analytics>(`/analytics?${query({ days })}`, {}, userId);
+export const getPeriodReport = (from: string, to: string, userId: string) =>
+  request<PeriodReport>(`/reports/period?${query({ from, to })}`, {}, userId);
+export const summarizePeriod = (from: string, to: string, userId: string) =>
+  post<PeriodSummary>(`/reports/period/summary?${query({ from, to })}`, {}, userId);
 export const getAnalyticsTickets = (days: number, filters: AnalyticsFilters, userId: string) =>
   request<Ticket[]>(`/analytics/tickets?${query({ days, ...filters })}&limit=500`, {}, userId);
 export const listNotifications = (userId: string) =>

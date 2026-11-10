@@ -13,6 +13,7 @@ import { Improvements } from './pages/Improvements';
 import { AnalyticsPage } from './pages/Analytics';
 import { RoutingPage } from './pages/RoutingPage';
 import { UsersPage } from './pages/UsersPage';
+import { PeriodReportPage } from './pages/PeriodReport';
 
 export default function App() {
   const { catalog, userId, load, notice, noticeAction, notify, refresh, selectUser } = useApp();
@@ -86,6 +87,12 @@ export default function App() {
               }
             />
             <Route path="/tickets/:id" element={<TicketDetail />} />
+            <Route
+              path="/report"
+              element={
+                current.role !== 'Сотрудник' ? <PeriodReportPage /> : <Navigate to={home} replace />
+              }
+            />
             <Route
               path="/all"
               element={

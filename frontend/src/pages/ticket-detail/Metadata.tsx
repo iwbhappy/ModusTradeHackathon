@@ -1,7 +1,7 @@
 import { useApp } from '../../store';
 import type { Ticket } from '../../types';
 import { cost, date, number } from '../../lib/format';
-import { Panel } from '../../components/ui';
+import { Badge, Panel } from '../../components/ui';
 
 export function Metadata({ t }: { t: Ticket }) {
   const { catalog } = useApp();
@@ -10,7 +10,7 @@ export function Metadata({ t }: { t: Ticket }) {
       <dl className="meta-list">
         {t.escalated && (
           <dd>
-            <span className="badge attention">Эскалировано</span>
+            <Badge status="Эскалировано" />
           </dd>
         )}
         {t.defaultConfirmed && <dd>Подтверждено по умолчанию</dd>}

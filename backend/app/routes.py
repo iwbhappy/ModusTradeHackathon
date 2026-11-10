@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from pathlib import Path
 from typing import Annotated
 
@@ -19,8 +20,43 @@ from .ai.embeddings import embedder, load_vectors, sync_embeddings
 from .ai.provider import provider
 from .ai.llm import GeminiProvider
 from .ai.summary import summary_input
+from . import reports
+from .analytics_visuals import bounds, stage_condition, health_condition
+from .domain.permissions import analytics_clause
 
 router = APIRouter(prefix="/api")
+
+
+@router.get("/reports/period")
+def period_report(
+    db: Database,
+    user: CurrentUser,
+    first: date = Query(alias="from"),
+    last: date = Query(alias="to"),
+):
+    return reports.period_report(db, user, first, last)
+
+
+@router.post("/reports/period/summary")
+def period_summary(
+    db: Database,
+    user: CurrentUser,
+    first: date = Query(alias="from"),
+    last: date = Query(alias="to"),
+):
+    report = reports.period_report(db, user, first, last)
+    result = GeminiProvider().period(
+        db,
+        reports.summary_payload(db, report),
+        {g["id"]: g["brief"] for g in report["groups"]},
+    )
+    return {
+        "report": report,
+        "summaries": {g["id"]: result[g["id"]] for g in report["groups"]},
+        "source": result["source"],
+        "cached": result["cached"],
+        "notice": result.get("notice", ""),
+    }
 
 
 @router.get("/auth/demo-users")
@@ -584,12 +620,22 @@ def analytics_tickets(
     assigneeDepartment: str = "",
     overdue: bool = False,
     type: str = "",
+    event: str = "",
+    stage: str = "",
+    health: str = "",
+    fromDate: date | None = None,
+    toDate: date | None = None,
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
 ):
+    if event and event not in {"incoming", "resolved", "confirmed", "implemented"}:
+        raise DomainError("Неизвестный показатель аналитики", 422)
+    if (fromDate is None) != (toDate is None):
+        raise DomainError("Укажите обе даты диапазона", 422)
+    scope = [analytics_clause(user)] if event else analytics.conditions(user, days)
     query = filters(
         db,
-        select(m.Ticket).where(*analytics.conditions(user, days)),
+        select(m.Ticket).where(*scope),
         cluster=cluster,
         authorDepartment=authorDepartment,
         targetDepartment=targetDepartment,
@@ -598,6 +644,19 @@ def analytics_tickets(
     )
     if type:
         query = query.where(m.Ticket.type == type)
+    if event:
+        start, end = (
+            reports.date_window(fromDate, toDate)
+            if fromDate is not None
+            else bounds(db, user, days)
+        )
+        query = query.where(reports.activity(start, end)[event])
+    for value, builder in [(stage, stage_condition), (health, health_condition)]:
+        if value:
+            condition = builder(value)
+            if condition is None:
+                raise DomainError("Неизвестный фильтр аналитики", 422)
+            query = query.where(condition)
     return [
         ticket_view(db, t, public=True)
         for t in db.scalars(

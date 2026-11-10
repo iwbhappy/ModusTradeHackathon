@@ -10,8 +10,30 @@ import {
   Settings2,
   ShieldCheck,
   Users,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../../store';
+import type { ReactNode } from 'react';
+
+function MenuItem({
+  to,
+  label,
+  icon,
+  end = false,
+}: {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  end?: boolean;
+}) {
+  return (
+    <NavLink to={to} aria-label={label}>
+      {icon}
+      <span className="nav-label">{label}</span>
+      {end && <ArrowUpRight className="nav-end" />}
+    </NavLink>
+  );
+}
 
 export function Sidebar({ home, onReset }: { home: string; onReset: () => void }) {
   const { catalog, userId } = useApp();
@@ -28,55 +50,30 @@ export function Sidebar({ home, onReset }: { home: string; onReset: () => void }
       </NavLink>
       <div className="workspace-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
       <nav aria-label="Основная навигация">
+        {current.role !== 'Сотрудник' && (
+          <MenuItem to="/report" label="Отчёт" icon={<FileText />} />
+        )}
         {current.role === 'Сотрудник' && (
           <>
-            <NavLink to="/mine">
-              <Inbox />
-              Мои обращения
-            </NavLink>
-            <NavLink to="/new">
-              <Plus />
-              Новое обращение
-            </NavLink>
+            <MenuItem to="/mine" label="Мои обращения" icon={<Inbox />} />
+            <MenuItem to="/new" label="Новое обращение" icon={<Plus />} />
           </>
         )}
         {current.role === 'Руководитель' && (
           <>
-            <NavLink to="/inbox">
-              <Inbox />
-              Входящие
-            </NavLink>
-            <NavLink to="/analytics">
-              <ChartNoAxesCombined />
-              Аналитика
-            </NavLink>
+            <MenuItem to="/inbox" label="Входящие" icon={<Inbox />} />
+            <MenuItem to="/analytics" label="Аналитика" icon={<ChartNoAxesCombined />} />
           </>
         )}
         {current.role === 'Администратор' && (
           <>
-            <NavLink to="/all">
-              <Inbox />
-              Все обращения
-            </NavLink>
-            <NavLink to="/analytics">
-              <ChartNoAxesCombined />
-              Аналитика
-            </NavLink>
-            <NavLink to="/routing">
-              <Settings2 />
-              Маршрутизация
-            </NavLink>
-            <NavLink to="/users">
-              <Users />
-              Пользователи и роли
-            </NavLink>
+            <MenuItem to="/all" label="Все обращения" icon={<Inbox />} />
+            <MenuItem to="/analytics" label="Аналитика" icon={<ChartNoAxesCombined />} />
+            <MenuItem to="/routing" label="Маршрутизация" icon={<Settings2 />} />
+            <MenuItem to="/users" label="Пользователи и роли" icon={<Users />} />
           </>
         )}
-        <NavLink to="/done">
-          <CheckCheck />
-          Сделано
-          <ArrowUpRight className="nav-end" />
-        </NavLink>
+        <MenuItem to="/done" label="Сделано" icon={<CheckCheck />} end />
       </nav>
       <div className="sidebar-bottom">
         <div className="security-note">

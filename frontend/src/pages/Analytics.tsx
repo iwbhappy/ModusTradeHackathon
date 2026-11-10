@@ -1,11 +1,12 @@
-import { SlaPanel } from './analytics/SlaPanel';
 import { ClustersTable } from './analytics/ClustersTable';
 import { EmergingProblems } from './analytics/EmergingProblems';
 import { FrictionMatrix } from './analytics/FrictionMatrix';
 import { Kpis } from './analytics/Kpis';
 import { ManagerSummary } from './analytics/ManagerSummary';
 import { Drilldown } from './analytics/Drilldown';
-import { Distribution } from './analytics/Distribution';
+import { FunnelChart } from './analytics/FunnelChart';
+import { DeadlineHealth } from './analytics/DeadlineHealth';
+import { ProblemTreemap } from './analytics/ProblemTreemap';
 import { WeeklyChart } from './analytics/WeeklyChart';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -14,7 +15,7 @@ import { exportAnalytics, getAnalytics, getAnalyticsTickets, isMockMode } from '
 import { useApp } from '../store';
 import type { Analytics, AnalyticsFilters, Ticket } from '../types';
 
-import { ErrorMessage, Loading, PageTitle, Panel } from '../components/ui';
+import { ErrorMessage, Loading, PageTitle } from '../components/ui';
 
 export function AnalyticsPage() {
   const { userId, catalog, selectUser } = useApp();
@@ -114,32 +115,13 @@ export function AnalyticsPage() {
           <button onClick={() => selectUser(companyViewer.id)}>Открыть сводку по компании</button>
         </div>
       )}
-      <Kpis data={data} />
+      <Kpis data={data} show={show} />
       <ManagerSummary key={userId} days={days} userId={userId} revision={JSON.stringify(data)} />
-      <div className="analytics-top">
-        <Panel
-          title="Динамика по неделям"
-          aside={
-            <div className="chart-legend">
-              <span>
-                <i />
-                Новые
-              </span>
-              <span>
-                <i />
-                Реализовано
-              </span>
-            </div>
-          }
-        >
-          <WeeklyChart data={data.weekly} />
-        </Panel>
-        <SlaPanel data={data} show={show} />
-      </div>
-      <div className="distribution-grid">
-        <Distribution title="По типам" data={data.distributions.type} />
-        <Distribution title="По статусам" data={data.distributions.status} />
-        <Distribution title="По категориям" data={data.distributions.category} limit={7} />
+      <div className="analytics-visual-grid">
+        <FunnelChart data={data} show={show} />
+        <DeadlineHealth data={data} show={show} />
+        <ProblemTreemap data={data} show={show} />
+        <WeeklyChart data={data.weekly} show={show} />
       </div>
       <EmergingProblems
         canCreate={data.companyScope}

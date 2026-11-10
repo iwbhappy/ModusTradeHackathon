@@ -77,6 +77,13 @@ CONTEXT = (
     "Не восстанавливай замаскированные сведения и не добавляй персональные данные. "
 )
 INSTRUCTIONS = {
+    "period": (
+        "Для КАЖДОЙ группы отчёта напиши 1–2 предложения, что конкретно сделано за период. "
+        "JSON: ключ — точный id группы, значение — краткий русский текст. "
+        "Используй только counts и results. Не выдавай отказ за реализованное улучшение, "
+        "не приписывай результат группе без подтверждающих текстов. Не перечисляй имена. "
+        "Если результатов нет, честно опиши движение по счётчикам, без общих обещаний."
+    ),
     "structure": (
         "Структурируй обращение: title до 80 символов, problem (не менее 20 символов), "
         "solution (если решения нет в тексте — предложи одно конкретное), effect как "
@@ -104,7 +111,9 @@ INSTRUCTIONS = {
 
 
 def response_schema(function: str, payload: dict) -> dict:
-    if function == "structure":
+    if function == "period":
+        properties = {g["id"]: {"type": "STRING"} for g in payload["groups"]}
+    elif function == "structure":
         properties = {name: {"type": "STRING"} for name in StructureOutput.model_fields}
         properties["category"]["enum"] = payload["categories"]
         properties["priority"]["enum"] = payload["priorities"]
@@ -220,6 +229,19 @@ class GeminiProvider:
     def summary(self, db: Session, aggregates: dict):
         return self.generate(db, "summary", aggregates, self.rules.summary(aggregates))
 
+    def period(self, db: Session, payload: dict, briefs: dict):
+        if (
+            not payload["groups"]
+            or len(json.dumps(payload, ensure_ascii=False)) > 120000
+        ):
+            return {
+                **briefs,
+                "source": "rules",
+                "cached": False,
+                "notice": "Нет групп для формулировки или отчёт слишком велик. Использованы правила.",
+            }
+        return self.generate(db, "period", payload, briefs)
+
     def _reserve(self, db: Session, day: str) -> bool:
         # Separate committed transaction: a timeout or route rollback never refunds a call.
         with Session(db.get_bind()) as ledger:
@@ -269,6 +291,7 @@ class GeminiProvider:
                             "structure": 400,
                             "draft": 300,
                             "summary": 800,
+                            "period": 4096,
                         }[function],
                     },
                 },
@@ -277,6 +300,18 @@ class GeminiProvider:
             return response.json()
 
     def _validate(self, function: str, value: dict, payload: dict) -> dict:
+        if function == "period":
+            ids = {g["id"] for g in payload["groups"]}
+            if (
+                not isinstance(value, dict)
+                or set(value) != ids
+                or not all(
+                    isinstance(text, str) and text.strip() and len(text) <= 1600
+                    for text in value.values()
+                )
+            ):
+                raise ValueError("Invalid period summary")
+            return {key: text.strip() for key, text in value.items()}
         model = {
             "structure": StructureOutput,
             "draft": DraftOutput,

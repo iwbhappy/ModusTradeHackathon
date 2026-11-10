@@ -10,6 +10,8 @@ from .db import now
 from .domain.calendar import calendar
 from .domain.permissions import analytics_clause
 from .domain.workflow import TERMINAL
+from .reports import period_stats
+from .analytics_visuals import enrich
 
 
 def conditions(user: m.User, days: int):
@@ -153,16 +155,21 @@ def summary(db: Session, user: m.User, days: int):
             .replace(tzinfo=None)
         )
         end = start + timedelta(days=7)
-        incoming = count(m.Ticket.created_at >= start, m.Ticket.created_at < end)
-        done = count(
-            m.Ticket.status.in_(["Реализовано", "Закрыто"]),
-            m.Ticket.implemented_at >= start,
-            m.Ticket.implemented_at < end,
-        )
+        stats = period_stats(db, user, start, end)
+        from_date = calendar().local(start).date()
         weekly.append(
-            {"start": start.isoformat() + "Z", "incoming": incoming, "done": done}
+            {
+                "start": start.isoformat() + "Z",
+                "fromDate": from_date.isoformat(),
+                "toDate": (from_date + timedelta(days=6)).isoformat(),
+                "incoming": stats["incoming"],
+                "done": stats["resolved"],
+                "confirmed": stats["confirmed"],
+                "savedHours": stats["savedHours"],
+            }
         )
     return {
+        **enrich(db, user, days, scope, weekly),
         "total": total,
         "openCount": open_count,
         "overdueCount": overdue,

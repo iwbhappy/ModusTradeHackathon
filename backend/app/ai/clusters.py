@@ -17,7 +17,13 @@ from ..config import settings
 from ..db import now
 from ..domain.errors import DomainError
 from ..domain.permissions import analytics_clause
-from .embeddings import embedder, group_similar, load_vectors, nearest_cluster, sync_embeddings
+from .embeddings import (
+    embedder,
+    group_similar,
+    load_vectors,
+    nearest_cluster,
+    sync_embeddings,
+)
 from .provider import RuleBasedProvider
 
 
@@ -41,7 +47,7 @@ def assign_cluster(db: Session, ticket: m.Ticket) -> str:
     return cluster_id
 
 
-def emerging(db: Session, user: m.User, days: int = 60) -> list[dict]:
+def emerging(db: Session, user: m.User, days: int | None = 60) -> list[dict]:
     """Группы похожих проблем, которые ещё не отнесены ни к одному кластеру."""
     scope = analytics_clause(user)
     if not embedder.ready:
@@ -55,7 +61,11 @@ def emerging(db: Session, user: m.User, days: int = 60) -> list[dict]:
                 scope,
                 m.Ticket.type == "Проблема",
                 m.Ticket.status != "Отклонено",
-                m.Ticket.created_at >= now() - timedelta(days=days),
+                (
+                    m.Ticket.created_at >= now() - timedelta(days=days)
+                    if days is not None
+                    else True
+                ),
                 m.Ticket.id.not_in(clustered),
             )
         )
@@ -88,7 +98,9 @@ def create_cluster(
 ) -> m.Cluster:
     """Оформляет группу обращений как новую повторяющуюся проблему."""
     if user.role != "Администратор" and not user.can_view_company_analytics:
-        raise DomainError("Новый кластер оформляет руководитель направления или администратор", 403)
+        raise DomainError(
+            "Новый кластер оформляет руководитель направления или администратор", 403
+        )
     title = title.strip()
     if len(title) < 5:
         raise DomainError("Укажите название проблемы: минимум 5 символов", 422)

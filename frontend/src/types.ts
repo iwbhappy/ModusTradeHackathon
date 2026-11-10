@@ -193,6 +193,9 @@ export interface TicketFilters {
   targetDepartment?: string;
 }
 export interface Analytics {
+  metrics: Record<MetricKey, MetricValue & { series: number[] }>;
+  funnel: { key: string; label: string; value: number }[];
+  deadlineHealth: { department: string; onTime: number; soon: number; overdue: number }[];
   total: number;
   openCount: number;
   overdueCount: number;
@@ -207,7 +210,15 @@ export interface Analytics {
   }[];
   matrix: { authorDepartment: string; targetDepartment: string; count: number }[];
   sla: { department: string; count: number }[];
-  weekly: { start: string; incoming: number; done: number }[];
+  weekly: {
+    start: string;
+    fromDate: string;
+    toDate: string;
+    incoming: number;
+    done: number;
+    confirmed: number;
+    savedHours: number;
+  }[];
   companyScope: boolean;
   departments: string[];
   considered: number;
@@ -231,12 +242,73 @@ export interface AppNotification {
   read: boolean;
 }
 export interface AnalyticsFilters {
+  event?: 'incoming' | 'resolved' | 'confirmed' | 'implemented';
+  fromDate?: string;
+  toDate?: string;
+  stage?: string;
+  health?: 'onTime' | 'soon' | 'overdue';
   cluster?: string;
   authorDepartment?: string;
   targetDepartment?: string;
   assigneeDepartment?: string;
   overdue?: boolean;
   type?: string;
+}
+
+export type MetricKey = 'incoming' | 'resolved' | 'confirmed' | 'savedHours';
+export interface MetricValue {
+  value: number;
+  previous: number;
+  delta: number;
+  percent: number | null;
+}
+export interface ReportTicket {
+  id: string;
+  title: string;
+  status: Status;
+  changed: string;
+  rejection: string;
+  assigneeId: string;
+  monthlyCost: number;
+  canRead: boolean;
+  activity?: { incoming: number; implemented: number; rejected: number; closed: number };
+}
+export interface ReportGroup {
+  id: string;
+  title: string;
+  departments: string[];
+  monthlyCost: number;
+  brief: string;
+  counts: {
+    incoming: number;
+    implemented: number;
+    rejected: number;
+    closed: number;
+    working: number;
+  };
+  tickets: ReportTicket[];
+}
+export interface PeriodReport {
+  from: string;
+  to: string;
+  previousFrom: string;
+  previousTo: string;
+  companyScope: boolean;
+  metrics: Record<MetricKey, MetricValue>;
+  attentionAsOf: string;
+  attention: { id: string; label: string; count: number; tickets: ReportTicket[] }[];
+  groups: ReportGroup[];
+  newTopics: {
+    title: string;
+    firstSeen: string;
+    monthlyCost: number;
+    departments: string[];
+    tickets: ReportTicket[];
+  }[];
+}
+export interface PeriodSummary extends GenerationMeta {
+  report?: PeriodReport;
+  summaries: Record<string, string>;
 }
 export interface Catalog {
   demoMode?: boolean;

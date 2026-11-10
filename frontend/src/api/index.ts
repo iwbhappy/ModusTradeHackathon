@@ -48,6 +48,10 @@ export const generateSummary: typeof Http.generateSummary = (...args) =>
   adapter.then((api) => api.generateSummary(...args));
 export const getAnalytics: typeof Http.getAnalytics = (...args) =>
   adapter.then((api) => api.getAnalytics(...args));
+export const getPeriodReport: typeof Http.getPeriodReport = (...args) =>
+  adapter.then((api) => api.getPeriodReport(...args));
+export const summarizePeriod: typeof Http.summarizePeriod = (...args) =>
+  adapter.then((api) => api.summarizePeriod(...args));
 export const getAnalyticsTickets: typeof Http.getAnalyticsTickets = (...args) =>
   adapter.then((api) => api.getAnalyticsTickets(...args));
 export const listNotifications: typeof Http.listNotifications = (...args) =>

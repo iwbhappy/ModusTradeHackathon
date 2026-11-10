@@ -73,5 +73,10 @@ def require_ticket(
     if not ticket:
         raise DomainError("Обращение не найдено", 404)
     if not (can_manage(user, ticket) if manage else can_read(user, ticket)):
+        if manage and can_read(user, ticket):
+            raise DomainError(
+                f"Решение по обращению принимает ответственный: {ticket.assignee.name}",
+                403,
+            )
         raise DomainError("Нет доступа к содержимому этого обращения", 403)
     return ticket

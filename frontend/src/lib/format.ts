@@ -1,7 +1,9 @@
 import type { Frequency, Ticket } from '../types';
 const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 export const date = (value: string | Date) => {
-  const d = new Date(value);
+  const d = new Date(
+    typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T12:00:00' : value,
+  );
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 };
 export const number = (value: number) =>

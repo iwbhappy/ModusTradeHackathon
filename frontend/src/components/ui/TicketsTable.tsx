@@ -32,7 +32,7 @@ export function TicketsTable({
         </thead>
         <tbody>
           {tickets.map((t) => (
-            <tr key={t.id}>
+            <tr key={t.id} className={overdue(t) ? 'overdue-row' : ''}>
               <td>
                 <Link to={`/tickets/${t.id}`} className="ticket-link" title={t.title}>
                   <span className="mono ticket-id">{t.id}</span>
@@ -41,10 +41,13 @@ export function TicketsTable({
                 <small className="ticket-meta">
                   {t.category} · {t.authorDepartment}
                 </small>
+                {t.priority === 'Высокий' && (
+                  <span className="priority-high">Высокий приоритет</span>
+                )}
               </td>
               <td>
                 <Badge status={t.status} />
-                {t.escalated && <span className="badge attention">Эскалировано</span>}
+                {t.escalated && <Badge status="Эскалировано" />}
               </td>
               <td className="person-cell">{users.find((u) => u.id === t.assigneeId)?.name}</td>
               <td>

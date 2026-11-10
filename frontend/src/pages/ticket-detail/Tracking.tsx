@@ -1,4 +1,4 @@
-import { Check, Clock3 } from 'lucide-react';
+import { AlertTriangle, Check, Clock3 } from 'lucide-react';
 
 import { useApp } from '../../store';
 import type { Ticket } from '../../types';
@@ -40,6 +40,12 @@ export function Tracking({ t }: { t: Ticket }) {
     const event = t.events.find((e) => e.status && stage.statuses.includes(e.status));
     return event?.date || (i === 0 ? t.createdAt : i === 4 ? t.closedAt : undefined);
   });
+  const currentStage =
+    t.status === 'Реализовано'
+      ? 4
+      : terminal(t)
+        ? -1
+        : stageDefs.findIndex((stage) => stage.statuses.includes(t.status));
 
   return (
     <Panel className="tracking-panel">
@@ -66,10 +72,21 @@ export function Tracking({ t }: { t: Ticket }) {
             facts.slice(i + 1).some(Boolean);
           const skipped =
             terminal(t) && !fact && !passed && !(i === 4 && t.status === 'Реализовано');
+          const current = i === currentStage;
+          const late =
+            !fact &&
+            !passed &&
+            !skipped &&
+            !terminal(t) &&
+            new Date(stage.plan).getTime() < Date.now();
           return (
-            <li className={fact || passed ? 'complete' : ''} key={stage.title}>
+            <li
+              className={`${fact || passed ? 'complete' : ''} ${current ? 'current' : ''} ${late ? 'late' : ''}`}
+              key={stage.title}
+              aria-current={current ? 'step' : undefined}
+            >
               <span className="track-circle">
-                {fact || passed ? <Check size={13} /> : skipped ? '—' : i + 1}
+                {current ? i + 1 : fact || passed ? <Check size={13} /> : skipped ? '—' : i + 1}
               </span>
               <div>
                 <strong>{stage.title}</strong>
@@ -82,6 +99,12 @@ export function Tracking({ t }: { t: Ticket }) {
                         ? 'Не потребовалось'
                         : `План: ${date(stage.plan)}`}
                 </small>
+                {late && (
+                  <small className="tracking-late">
+                    <AlertTriangle size={12} />
+                    Плановый срок истёк
+                  </small>
+                )}
                 {i === 3 && resultReopened && previousResult && (
                   <small>Прошлый результат: {date(previousResult)}, возвращён автором</small>
                 )}

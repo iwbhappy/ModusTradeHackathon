@@ -3,6 +3,8 @@ import { Grid2X2 } from 'lucide-react';
 import type { Analytics, AnalyticsFilters } from '../../types';
 
 import { Panel } from '../../components/ui';
+import { BLUE_SCALE } from './ChartPanel';
+import { useState } from 'react';
 export function FrictionMatrix({
   data,
   show,
@@ -10,6 +12,7 @@ export function FrictionMatrix({
   data: Analytics;
   show: (title: string, filters: AnalyticsFilters) => void;
 }) {
+  const [tableMode, setTableMode] = useState(false);
   const matrixMax = Math.max(1, ...data.matrix.map((cell) => cell.count));
   const cells = (a: string, b: string) =>
     data.matrix.find((cell) => cell.authorDepartment === a && cell.targetDepartment === b)?.count ||
@@ -20,10 +23,14 @@ export function FrictionMatrix({
       title="Матрица межотдельного трения"
       className="matrix-panel"
       aside={
-        <span className="quiet-label">
+        <button
+          className="chart-view-toggle"
+          aria-pressed={tableMode}
+          onClick={() => setTableMode((value) => !value)}
+        >
           <Grid2X2 size={15} />
-          Нажмите на ячейку для просмотра
-        </span>
+          {tableMode ? 'Тепловая карта' : 'Таблица'}
+        </button>
       }
     >
       <div className="matrix-description">
@@ -50,10 +57,8 @@ export function FrictionMatrix({
                   const count = cells(a, b);
                   const strength = count / matrixMax;
                   const color = count
-                    ? ['#EBF0F6', '#CBDAE8', '#95AFC9', '#567FA6', '#1E3A5F'][
-                        Math.min(4, Math.floor(strength * 4))
-                      ]
-                    : '#F5F6F8';
+                    ? BLUE_SCALE[Math.min(6, Math.floor(strength * 6))]
+                    : '#F4F7FB';
                   return (
                     <td key={b}>
                       <button
@@ -66,7 +71,10 @@ export function FrictionMatrix({
                             type: 'Проблема',
                           })
                         }
-                        style={{ background: color, color: strength > 0.65 ? '#fff' : '#1E3A5F' }}
+                        style={{
+                          background: tableMode ? '#FFFFFF' : color,
+                          color: !tableMode && Math.floor(strength * 6) >= 4 ? '#fff' : '#0F1B2D',
+                        }}
                         className="mono"
                       >
                         {count || '—'}
@@ -81,7 +89,7 @@ export function FrictionMatrix({
       </div>
       <div className="heatmap-legend">
         <span>Меньше обращений</span>
-        {['#F5F6F8', '#EBF0F6', '#CBDAE8', '#95AFC9', '#567FA6', '#1E3A5F'].map((c) => (
+        {BLUE_SCALE.map((c) => (
           <i key={c} style={{ background: c }} />
         ))}
         <span>Больше обращений</span>

@@ -63,14 +63,17 @@ export function Improvements() {
       ) : (
         <div className="improvements-feed">
           {filtered.map((t) => (
-            <Panel key={t.id}>
+            <Panel key={t.id} className="improvement-card">
               <div className="improvement-top">
                 <span className="mono ticket-id">{t.id}</span>
                 <span>{t.targetDepartment}</span>
                 <time>{date(t.implementedAt!)}</time>
               </div>
               <div className="panel-body">
-                <h2>{t.title}</h2>
+                <h2>
+                  <CheckCheck size={19} />
+                  {t.title}
+                </h2>
                 <div className="before-after">
                   <div>
                     <span className="eyebrow">БЫЛО</span>

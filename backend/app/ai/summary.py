@@ -49,6 +49,10 @@ def summary_input(db: Session, user: m.User, days: int) -> dict:
         "sla": sorted(data["sla"], key=lambda s: (-s["count"], s["department"])),
         "departments": data["departments"],
     }
+    return remove_known_names(db, payload)
+
+
+def remove_known_names(db: Session, payload: dict) -> dict:
     names = [name for name in db.scalars(select(m.User.name)) if len(name) >= 3]
     pattern = (
         re.compile(
