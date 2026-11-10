@@ -57,25 +57,17 @@ uv run uvicorn app.main:app --reload
 
 HTTP включён по умолчанию: `VITE_API_MODE=http`. В БД сохраняются обращения, участники, история, уведомления, правила, отпуска и метаданные вложений; файлы хранятся отдельно на диске.
 
-Статическая сборка без API:
+Статическое демо без API (одинаково в Bash и PowerShell, из `frontend/`):
 
 ```sh
-# Bash, из frontend/
-VITE_API_MODE=mock npm run build
+npm run dev:mock      # dev-сервер в mock-режиме
+npm run build:mock    # статическая сборка в dist/
 npm run preview
 ```
 
-В PowerShell:
+Режим задаётся файлом `frontend/.env.mock`. Для собственных настроек используйте `frontend/.env.local` и перезапустите Vite.
 
-```powershell
-$env:VITE_API_MODE = 'mock'
-npm run build
-npm run preview
-```
-
-Для возврата к HTTP в PowerShell: `$env:VITE_API_MODE = 'http'`. Значение выбирается при старте dev-сервера или сборке, поэтому после изменения перезапустите Vite. Альтернатива — задать переменную в `frontend/.env.local`.
-
-Mock получает тот же `data/seed.json`, сохраняет предметные изменения в localStorage `signal-demo-v3`. Реальный SLA-планировщик, уведомления и XLSX требуют HTTP; в mock загрузки доступны до перезагрузки страницы. HTTP-адаптер не читает предметные данные из localStorage. Все экраны используют один фасад `src/api/index.ts`.
+Mock получает тот же `data/seed.json`, сохраняет предметные изменения в localStorage `signal-demo-v4`. Реальный SLA-планировщик, уведомления и XLSX требуют HTTP; в mock загрузки доступны до перезагрузки страницы. HTTP-адаптер не читает предметные данные из localStorage. Все экраны используют один фасад `src/api/index.ts`.
 
 ## Сброс и календарь
 

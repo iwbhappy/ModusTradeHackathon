@@ -1,6 +1,6 @@
 import { createSeed, catalogBase } from '../../data/seed';
 import type { Catalog, Database, Status, Ticket, User } from '../../types';
-const KEY = 'signal-demo-v3';
+const KEY = 'signal-demo-v4';
 export let db: Database;
 try {
   const stored = localStorage.getItem(KEY);

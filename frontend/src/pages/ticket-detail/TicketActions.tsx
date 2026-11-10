@@ -7,11 +7,25 @@ import type { Status, Ticket } from '../../types';
 
 import { Field, Panel } from '../../components/ui';
 import type { ActionRunner } from './types';
+
+const MANAGER_STATUSES: Status[] = [
+  'На рассмотрении',
+  'В работе',
+  'Ожидает уточнения',
+  'Реализовано',
+  'Отклонено',
+];
+
 export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; busy: boolean }) {
   const { catalog, userId } = useApp();
   const id = t.id;
   const navigate = useNavigate();
-  const [status, setStatus] = useState<Status>('В работе');
+  const [choice, setStatus] = useState<Status>('В работе');
+  // Предлагаем только переходы, разрешённые машиной состояний на сервере.
+  const allowed = MANAGER_STATUSES.filter(
+    (s) => s !== t.status && (!catalog?.transitions || catalog.transitions[t.status]?.includes(s)),
+  );
+  const status = allowed.includes(choice) ? choice : (allowed[0] ?? choice);
   const [actionText, setActionText] = useState('');
   const [assignee, setAssignee] = useState(t.assigneeId);
   const [reason, setReason] = useState('');
@@ -37,24 +51,8 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
                 setDraft('');
               }}
             >
-              {(
-                [
-                  'На рассмотрении',
-                  'В работе',
-                  'Ожидает уточнения',
-                  'Реализовано',
-                  'Отклонено',
-                ] as Status[]
-              ).map((s) => (
-                <option
-                  disabled={
-                    s === t.status ||
-                    (catalog?.transitions && !catalog.transitions[t.status]?.includes(s))
-                  }
-                  key={s}
-                >
-                  {s}
-                </option>
+              {allowed.map((s) => (
+                <option key={s}>{s}</option>
               ))}
             </select>
           </Field>
