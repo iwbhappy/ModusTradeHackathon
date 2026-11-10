@@ -517,6 +517,11 @@ td small,
 .metric-delta.neutral {
   color: var(--secondary);
 }
+.metric-delta.no-data {
+  color: var(--secondary);
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+}
 .metric-card > small {
   font-size: 12px;
 }
@@ -737,15 +742,11 @@ td small,
 }
 .treemap-cell {
   position: absolute;
-  border: 2px solid white;
+  container-type: size;
+  border: 0;
   border-radius: 4px;
-  padding: 14px;
+  padding: 0;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 7px;
   text-align: left;
   min-height: 0;
   min-width: 0;
@@ -765,21 +766,66 @@ td small,
 .treemap-cell:hover {
   box-shadow: inset 0 0 0 2px var(--action);
 }
-.treemap-cell > span {
-  font-size: 14px;
-  font-weight: 650;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.treemap-content {
+  position: absolute;
+  inset: 4px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
   overflow: hidden;
 }
-.treemap-cell > strong {
-  font-size: 22px;
+.treemap-title {
+  display: none;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 16px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.treemap-cell > small {
+.treemap-content > strong {
+  flex-shrink: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.treemap-content > small {
+  display: none;
   color: inherit;
   font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+@container (min-width: 56px) and (min-height: 36px) {
+  .treemap-content {
+    display: flex;
+  }
+}
+@container (min-width: 120px) and (min-height: 64px) {
+  .treemap-title {
+    display: -webkit-box;
+  }
+}
+@container (min-width: 160px) and (min-height: 96px) {
+  .treemap-content {
+    inset: 10px;
+    --treemap-number-size: 22px;
+  }
+  .treemap-title {
+    font-size: 14px;
+    line-height: 18px;
+  }
+}
+@container (min-width: 180px) and (min-height: 136px) {
+  .treemap-content > small {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
 }
 .weekly-viz {
   position: relative;
@@ -1102,15 +1148,6 @@ td small,
   }
   .treemap {
     height: 380px;
-  }
-  .treemap-cell {
-    padding: 8px;
-  }
-  .treemap-cell > span {
-    font-size: 12px;
-  }
-  .treemap-cell > strong {
-    font-size: 16px;
   }
   .attention-list {
     grid-template-columns: 1fr;

@@ -57,7 +57,13 @@ export function Kpis({
                     </button>
                   </td>
                   <td>{number(data.metrics[key].previous)}</td>
-                  <td>{number(data.metrics[key].delta)}</td>
+                  <td>
+                    {data.metrics[key].previous === 0 ? (
+                      <span className="metric-delta no-data">нет данных за прошлый период</span>
+                    ) : (
+                      number(data.metrics[key].delta)
+                    )}
+                  </td>
                   {data.metrics[key].series.map((value, index) => (
                     <td key={index}>
                       <button
@@ -91,7 +97,11 @@ export function Kpis({
                 <span className="metric-label">{metricLabels[key]}</span>
                 <button
                   className="metric-value-action"
-                  title={`Открыть обращения; предыдущий период: ${number(metric.previous)}`}
+                  title={
+                    metric.previous === 0
+                      ? 'Открыть обращения; нет данных за прошлый период'
+                      : `Открыть обращения; предыдущий период: ${number(metric.previous)}`
+                  }
                   onClick={() => show(metricLabels[key], { event: event(key) })}
                 >
                   <strong className="metric-value">{number(metric.value)}</strong>
@@ -147,7 +157,9 @@ export function Kpis({
                     </circle>
                   ))}
                 </svg>
-                <small>10 недель · ранее {number(metric.previous)}</small>
+                <small>
+                  10 недель{metric.previous !== 0 && ` · ранее ${number(metric.previous)}`}
+                </small>
               </div>
             );
           })}

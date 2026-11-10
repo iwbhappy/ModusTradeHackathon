@@ -9,6 +9,9 @@ export const metricLabels: Record<MetricKey, string> = {
   savedHours: 'Сэкономлено ≈ чел.-ч/мес',
 };
 export function Delta({ metric, neutral = false }: { metric: MetricValue; neutral?: boolean }) {
+  if (metric.previous === 0) {
+    return <span className="metric-delta no-data">нет данных за прошлый период</span>;
+  }
   const Icon = metric.delta > 0 ? ArrowUp : metric.delta < 0 ? ArrowDown : Minus;
   return (
     <span
@@ -36,7 +39,7 @@ export function MetricCards({ metrics }: { metrics: Record<MetricKey, MetricValu
           <span className="metric-label">{metricLabels[key]}</span>
           <strong className="metric-value">{number(metrics[key].value)}</strong>
           <Delta metric={metrics[key]} neutral={key === 'incoming'} />
-          <small>Ранее: {number(metrics[key].previous)}</small>
+          {metrics[key].previous !== 0 && <small>Ранее: {number(metrics[key].previous)}</small>}
         </div>
       ))}
     </div>

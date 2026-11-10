@@ -101,19 +101,33 @@ export function ProblemTreemap({
                 title={text}
                 aria-label={text}
                 className={`treemap-cell ${cluster.trend > 0 ? 'growing' : cluster.trend < 0 ? 'declining' : 'steady'}`}
-                style={{ left: `${x}%`, top: `${y}%`, width: `${width}%`, height: `${height}%` }}
+                style={{
+                  left: `calc(${x}% + 1px)`,
+                  top: `calc(${y}% + 1px)`,
+                  width: `max(0px, calc(${width}% - 2px))`,
+                  height: `max(0px, calc(${height}% - 2px))`,
+                }}
                 onMouseEnter={() => setHint(text)}
                 onMouseLeave={() => setHint('')}
                 onFocus={() => setHint(text)}
                 onBlur={() => setHint('')}
                 onClick={() => show(cluster.title, { cluster: cluster.id })}
               >
-                <span>{cluster.title}</span>
-                <strong className="mono">≈ {number(cluster.monthlyCost)}</strong>
-                <small>
-                  чел.-ч/мес · {cluster.trend > 0 ? '+' : ''}
-                  {cluster.trend} обращений
-                </small>
+                <div className="treemap-content" aria-hidden="true">
+                  <span className="treemap-title">{cluster.title}</span>
+                  <strong
+                    className="mono"
+                    style={{
+                      fontSize: `min(var(--treemap-number-size, 16px), calc((100cqw - 24px) / ${number(cluster.monthlyCost).length} / 0.61))`,
+                    }}
+                  >
+                    {number(cluster.monthlyCost)}
+                  </strong>
+                  <small>
+                    чел.-ч/мес · {cluster.trend > 0 ? '+' : ''}
+                    {cluster.trend} обращений
+                  </small>
+                </div>
               </button>
             );
           })}
