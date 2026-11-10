@@ -26,7 +26,13 @@ export function RoutingPage() {
               setError('');
               try {
                 const result = await runSlaCheck(userId);
-                notify(`${result.message}: ${result.processed}`);
+                const message =
+                  result.message === 'Проверка уже выполняется'
+                    ? result.message
+                    : 'Проверка выполнена';
+                notify(
+                  `${message}. Новых событий: ${result.processed}. Сейчас эскалировано: ${result.summary.escalated}, просрочено: ${result.summary.overdue}`,
+                );
                 await refresh();
               } catch (error) {
                 setError((error as Error).message);

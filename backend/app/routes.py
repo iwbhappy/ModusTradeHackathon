@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from urllib.parse import quote
-from sqlalchemy import func, select
+from sqlalchemy import case, func, or_, select
 
 from . import analytics, models as m, schemas as s, services
 from .auth import Admin, CurrentUser, Database, issue_token
@@ -290,10 +290,29 @@ def reset(db: Database, user: Admin):
 
 
 @router.post("/admin/run-sla-check")
-def check(user: Admin):
+def check(db: Database, user: Admin):
     from .sla import run_check
+    from .db import now
 
-    return run_check()
+    result = run_check()
+    timestamp = now()
+    active = m.Ticket.status.not_in(TERMINAL)
+    response_overdue = m.Ticket.first_response_at.is_(None) & (
+        m.Ticket.response_due_at < timestamp
+    )
+    resolution_overdue = m.Ticket.due_at < timestamp
+    conditions = {
+        "escalated": active & m.Ticket.escalated.is_(True),
+        "responseOverdue": active & response_overdue,
+        "resolutionOverdue": active & resolution_overdue,
+        "overdue": active & or_(response_overdue, resolution_overdue),
+        "defaultConfirmed": (m.Ticket.status == "Закрыто")
+        & m.Ticket.default_confirmed.is_(True),
+    }
+    counts = db.execute(
+        select(*(func.count(case((condition, 1))) for condition in conditions.values()))
+    ).one()
+    return {**result, "summary": dict(zip(conditions, counts))}
 
 
 @router.get("/admin/aggregates")

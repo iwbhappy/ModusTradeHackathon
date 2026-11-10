@@ -27,11 +27,18 @@ export function Tracking({ t }: { t: Ticket }) {
       plan: businessDays(new Date(t.dueAt), 3),
     },
   ];
+  const latestResult = [...t.events]
+    .reverse()
+    .find((event) => event.status === 'Реализовано' || event.status === 'Отклонено')?.date;
+  const previousResult = t.implementedAt || latestResult;
+  const resultReopened =
+    !terminal(t) &&
+    (t.status === 'Возвращено автором' ||
+      t.events.some((event) => event.status === 'Возвращено автором'));
   const facts = stageDefs.map((stage, i) => {
+    if (i === 3) return resultReopened ? undefined : latestResult || t.implementedAt || t.closedAt;
     const event = t.events.find((e) => e.status && stage.statuses.includes(e.status));
-    return (
-      event?.date || (i === 3 ? t.implementedAt || t.closedAt : i === 4 ? t.closedAt : undefined)
-    );
+    return event?.date || (i === 0 ? t.createdAt : i === 4 ? t.closedAt : undefined);
   });
 
   return (
@@ -51,8 +58,12 @@ export function Tracking({ t }: { t: Ticket }) {
       <ol className="tracking">
         {stageDefs.map((stage, i) => {
           const fact = facts[i];
-          // Этап без собственной даты, после которого работа уже пошла дальше.
-          const passed = !fact && facts.slice(i + 1).some(Boolean);
+          // Отказ не подтверждает прохождение пропущенных этапов.
+          const passed =
+            !fact &&
+            t.status !== 'Отклонено' &&
+            !(i === 3 && resultReopened) &&
+            facts.slice(i + 1).some(Boolean);
           const skipped =
             terminal(t) && !fact && !passed && !(i === 4 && t.status === 'Реализовано');
           return (
@@ -71,6 +82,9 @@ export function Tracking({ t }: { t: Ticket }) {
                         ? 'Не потребовалось'
                         : `План: ${date(stage.plan)}`}
                 </small>
+                {i === 3 && resultReopened && previousResult && (
+                  <small>Прошлый результат: {date(previousResult)}, возвращён автором</small>
+                )}
               </div>
             </li>
           );

@@ -13,6 +13,7 @@ import type {
   Rule,
   SimilarityContext,
   SimilarTicket,
+  SlaCheckResult,
   Status,
   Structure,
   Ticket,
@@ -83,7 +84,7 @@ export const getUnreadCount = (userId: string) =>
 export const readNotification = (id: string, userId: string) =>
   post<void>(`/notifications/${id}/read`, {}, userId);
 export const runSlaCheck = (userId: string) =>
-  post<{ message: string; processed: number }>('/admin/run-sla-check', {}, userId);
+  post<SlaCheckResult>('/admin/run-sla-check', {}, userId);
 export async function uploadFiles(files: File[], userId: string): Promise<AttachmentInfo[]> {
   const uploaded: AttachmentInfo[] = [];
   for (const file of files) {

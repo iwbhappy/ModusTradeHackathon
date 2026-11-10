@@ -11,6 +11,17 @@ export type Status =
   | 'Возвращено автором';
 export type Priority = 'Низкий' | 'Средний' | 'Высокий';
 export type Frequency = 'ежедневно' | 'еженедельно' | 'ежемесячно' | 'разово';
+export interface SlaCheckResult {
+  message: string;
+  processed: number;
+  summary: {
+    escalated: number;
+    responseOverdue: number;
+    resolutionOverdue: number;
+    overdue: number;
+    defaultConfirmed: number;
+  };
+}
 export interface User {
   id: string;
   name: string;

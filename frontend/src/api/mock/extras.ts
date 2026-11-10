@@ -1,4 +1,4 @@
-import type { AppNotification, AttachmentInfo } from '../../types';
+import type { AppNotification, AttachmentInfo, SlaCheckResult } from '../../types';
 import { clone, pause, user } from './storage';
 import { saveBlob } from '../http/client';
 
@@ -14,8 +14,18 @@ export async function getUnreadCount(_userId: string) {
   return 0;
 }
 export async function readNotification(_id: string, _userId: string): Promise<void> {}
-export async function runSlaCheck(_userId: string) {
-  return { message: 'Проверка SLA доступна в HTTP-режиме', processed: 0 };
+export async function runSlaCheck(_userId: string): Promise<SlaCheckResult> {
+  return {
+    message: 'Проверка SLA доступна в HTTP-режиме',
+    processed: 0,
+    summary: {
+      escalated: 0,
+      responseOverdue: 0,
+      resolutionOverdue: 0,
+      overdue: 0,
+      defaultConfirmed: 0,
+    },
+  };
 }
 export async function exportAnalytics(_days: number, _userId: string): Promise<void> {
   throw new Error('Для выгрузки XLSX нужен HTTP-режим');
