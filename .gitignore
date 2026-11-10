@@ -5,6 +5,7 @@ frontend/.npm-cache/
 .browser-profile/
 .browser-profile-edge/
 frontend/.dev-*.log
+frontend/.manual-preview/
 *.docx
 .claude/settings.local.json
 .npm-cache/

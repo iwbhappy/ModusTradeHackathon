@@ -1,49 +1,132 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowUp, ArrowUpRight, ChartNoAxesCombined, Clock3, Grid2X2, ListFilter, ScanSearch } from 'lucide-react';
+import { SlaPanel } from './analytics/SlaPanel';
+import { ClustersTable } from './analytics/ClustersTable';
+import { FrictionMatrix } from './analytics/FrictionMatrix';
+import { Kpis } from './analytics/Kpis';
+import { Drilldown } from './analytics/Drilldown';
+import { Distribution } from './analytics/Distribution';
+import { WeeklyChart } from './analytics/WeeklyChart';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ChartNoAxesCombined } from 'lucide-react';
 import { getAnalytics } from '../api';
 import { useApp } from '../store';
 import type { Analytics, Ticket } from '../types';
-import { cost, date, number, overdue } from '../lib/format';
-import { Badge, Empty, ErrorMessage, Loading, Modal, PageTitle, Panel } from '../components/ui';
 
-const palette = ['#1E3A5F', '#48729A', '#7595B3', '#A3B7C9', '#C8D4DF', '#DDE4EA', '#5B7F78', '#99AAA5'];
-function Distribution({ title, data }: { title: string; data: { label: string; value: number }[] }) {
-  const sum = data.reduce((s, x) => s + x.value, 0);
-  return <Panel title={title}><div className="distribution"><div className="stacked-bar" role="img" aria-label={data.map(x => `${x.label}: ${x.value}`).join(', ')}>{data.map((d, i) => <span key={d.label} style={{ width: `${sum ? d.value / sum * 100 : 0}%`, background: palette[i % palette.length] }} title={`${d.label}: ${d.value}`}/>)}</div>{data.map((d, i) => <div className="distribution-row" key={d.label}><span className="legend-square" style={{ background: palette[i % palette.length] }}/><span>{d.label}</span><strong className="mono">{d.value}</strong><small className="mono">{sum ? Math.round(d.value / sum * 100) : 0}%</small></div>)}</div></Panel>;
-}
-function WeeklyChart({ tickets }: { tickets: Ticket[] }) {
-  const data = useMemo(() => {
-    const current = new Date(); current.setDate(current.getDate() - (current.getDay() + 6) % 7); current.setHours(0, 0, 0, 0);
-    return Array.from({ length: 10 }, (_, i) => { const start = new Date(current); start.setDate(start.getDate() - (9 - i) * 7); const end = new Date(start); end.setDate(end.getDate() + 7); return { start, incoming: tickets.filter(t => new Date(t.createdAt) >= start && new Date(t.createdAt) < end).length, done: tickets.filter(t => t.implementedAt && new Date(t.implementedAt) >= start && new Date(t.implementedAt) < end && ['Реализовано', 'Закрыто'].includes(t.status)).length }; });
-  }, [tickets]);
-  const max = Math.max(4, ...data.flatMap(d => [d.incoming, d.done]));
-  return <div className="weekly-chart"><svg viewBox="0 0 900 190" role="img" aria-label="Обращения по неделям за последние 10 недель"><title>Новые и реализованные обращения по неделям</title>{[0, 1, 2, 3, 4].map(i => <g key={i}><line x1="35" x2="885" y1={150 - i * 33} y2={150 - i * 33} stroke="#E9EDF1"/><text x="23" y={154 - i * 33} textAnchor="end" fill="#7A8491" fontSize="10">{Math.round(max * i / 4)}</text></g>)}{data.map((d, i) => <g key={i}><title>{date(d.start)}: новых {d.incoming}, реализовано {d.done}</title><rect x={52 + i * 84} y={150 - d.incoming / max * 132} width="21" height={d.incoming / max * 132} fill="#1E3A5F" rx="2"/><rect x={77 + i * 84} y={150 - d.done / max * 132} width="21" height={d.done / max * 132} fill="#A3B7C9" rx="2"/><text x={75 + i * 84} y="177" textAnchor="middle" fill="#6C7785" fontSize="10">{new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(d.start).replace('.', '')}</text></g>)}</svg></div>;
-}
+import { ErrorMessage, Loading, PageTitle, Panel } from '../components/ui';
+
 export function AnalyticsPage() {
-  const { userId, selectUser } = useApp(); const [params, setParams] = useSearchParams(); const [days, setDays] = useState(90); const [data, setData] = useState<Analytics | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  const { userId } = useApp();
+  const [params, setParams] = useSearchParams();
+  const [days, setDays] = useState(90);
+  const [data, setData] = useState<Analytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [drill, setDrill] = useState<{ title: string; tickets: Ticket[] } | null>(null);
-  useEffect(() => { let live = true; setLoading(true); getAnalytics(days, userId).then(result => { if (live) { setData(result); const cluster = params.get('cluster'); if (cluster) setDrill({ title: result.clusters.find(c => c.id === cluster)?.title || 'Кластер', tickets: result.tickets.filter(t => t.clusterId === cluster) }); } }).catch(e => { if (live) setError(e.message); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [days, userId, params]);
-  if (!data && loading) return <Loading/>; if (!data) return <ErrorMessage text={error}/>;
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    getAnalytics(days, userId)
+      .then((result) => {
+        if (live) {
+          setData(result);
+          const cluster = params.get('cluster');
+          if (cluster)
+            setDrill({
+              title: result.clusters.find((c) => c.id === cluster)?.title || 'Кластер',
+              tickets: result.tickets.filter((t) => t.clusterId === cluster),
+            });
+        }
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [days, userId, params]);
+  if (!data && loading) return <Loading />;
+  if (!data) return <ErrorMessage text={error} />;
   const tickets = data.tickets;
-  const group = (key: 'type' | 'status' | 'category') => [...new Set(tickets.map(t => t[key]))].map(label => ({ label, value: tickets.filter(t => t[key] === label).length })).sort((a, b) => b.value - a.value);
-  const problems = tickets.filter(t => t.type === 'Проблема');
-  const matrixMax = Math.max(1, ...data.departments.flatMap(a => data.departments.map(b => problems.filter(t => t.authorDepartment === a && t.targetDepartment === b).length)));
-  const cells = (a: string, b: string) => problems.filter(t => t.authorDepartment === a && t.targetDepartment === b);
+  const group = (key: 'type' | 'status' | 'category') =>
+    [...new Set(tickets.map((t) => t[key]))]
+      .map((label) => ({ label, value: tickets.filter((t) => t[key] === label).length }))
+      .sort((a, b) => b.value - a.value);
   const show = (title: string, list: Ticket[]) => setDrill({ title, tickets: list });
-  return <><PageTitle title="Аналитика обращений" subtitle="Повторяющиеся проблемы, потери времени и результат изменений · вся компания" action={<div className="segmented compact">{[[30, '30 дней'], [90, '90 дней'], [0, 'Всё время']].map(([value, label]) => <button key={value} className={days === value ? 'selected' : ''} onClick={() => { setDays(Number(value)); setDrill(null); }}>{label}</button>)}</div>}/><ErrorMessage text={error}/>{loading && <Loading/>}
-    <div className="kpi-row">{[
-      ['Рассмотрено', `${number(data.considered)}%`, 'Есть первый ответ'],
-      ['До первого ответа', `${number(data.medianHours)} ч`, `Медиана · среднее ${number(data.averageHours)} ч`],
-      ['Результат зафиксирован', `${number(data.resultRate)}%`, 'Решение или мотивированный отказ'],
-      ['Реализовано', `${data.implemented}`, 'По дате реализации за период'],
-      ['Подтверждено авторами', `${data.confirmed}`, 'Результат проверен в работе']
-    ].map(([label, value, hint]) => <div className="kpi" key={label}><span>{label}</span><strong className="mono">{value}</strong><small>{hint}</small></div>)}</div>
-    <div className="analytics-top"><Panel title="Динамика по неделям" aside={<div className="chart-legend"><span><i/>Новые</span><span><i/>Реализовано</span></div>}><WeeklyChart tickets={tickets}/></Panel><Panel title="Контроль SLA" aside={<Clock3 size={17}/>}><div className="sla-summary"><strong className="mono overdue">{tickets.filter(overdue).length}</strong><span>обращений с просроченным решением</span></div><div className="sla-list">{data.departments.map(d => ({ d, list: tickets.filter(t => overdue(t) && data.users.find(u => u.id === t.assigneeId)?.department === d) })).filter(x => x.list.length).sort((a, b) => b.list.length - a.list.length).map(({ d, list }) => <button key={d} onClick={() => show(`Просрочены · ${d}`, list)}><span>{d}</span><span className="sla-bar"><i style={{ width: `${list.length / Math.max(1, tickets.filter(overdue).length) * 100}%` }}/></span><strong className="mono overdue">{list.length}</strong><ArrowUpRight size={14}/></button>)}</div>{!tickets.some(overdue) && <p className="panel-body muted">Просроченных обращений нет</p>}</Panel></div>
-    <div className="distribution-grid"><Distribution title="По типам" data={group('type')}/><Distribution title="По статусам" data={group('status')}/><Distribution title="По категориям" data={group('category')}/></div>
-    <Panel title="Повторяющиеся проблемы" aside={<span className="quiet-label"><ScanSearch size={15}/>Анализ системы</span>}><div className="table-wrap"><table><thead><tr><th>Кластер</th><th className="numeric">Обращения</th><th>Затронутые подразделения</th><th className="numeric">≈ чел.-ч/мес</th><th className="numeric">Тренд за 30 дн.</th><th/></tr></thead><tbody>{data.clusters.map(cluster => { const list = tickets.filter(t => t.clusterId === cluster.id); const delta = data.clusterTrends[cluster.id] || 0; return <tr key={cluster.id}><td><button className="text-button cluster-title" onClick={() => show(cluster.title, list)}>{cluster.title}</button></td><td className="numeric mono">{list.length}</td><td className="departments-cell">{[...new Set(list.flatMap(t => [t.authorDepartment, t.targetDepartment, ...t.participants.map(p => p.department)]))].join(', ') || '—'}</td><td className="numeric mono">{number(list.reduce((s, t) => s + cost(t), 0))}</td><td className="numeric"><span className="trend">{delta > 0 ? <ArrowUp size={13}/> : delta < 0 ? <ArrowDown size={13}/> : null}{delta > 0 ? '+' : ''}{delta}</span></td><td><button className="icon-button" aria-label={`Открыть кластер: ${cluster.title}`} onClick={() => show(cluster.title, list)}><ArrowUpRight size={15}/></button></td></tr>; })}</tbody></table></div><div className="table-footer"><span>Оценки авторов и участников · ежедневно = 22, еженедельно = 4 раза в месяц</span><span>Разовые потери не входят в месяц</span></div></Panel>
-    <Panel title="Матрица межотдельного трения" className="matrix-panel" aside={<span className="quiet-label"><Grid2X2 size={15}/>Нажмите на ячейку для просмотра</span>}><div className="matrix-description">Строка — подразделение автора. Столбец — подразделение или процесс, к которому относится обращение.</div><div className="table-wrap"><table className="heatmap"><thead><tr><th>Кто сообщает <span>→ о ком</span></th>{data.departments.map(d => <th key={d}>{d}</th>)}</tr></thead><tbody>{data.departments.map(a => <tr key={a}><th>{a}</th>{data.departments.map(b => { const count = cells(a, b).length; const strength = count / matrixMax; const color = count ? ['#EBF0F6', '#CBDAE8', '#95AFC9', '#567FA6', '#1E3A5F'][Math.min(4, Math.floor(strength * 4))] : '#F5F6F8'; return <td key={b}><button title={`${a} → ${b}: ${count}`} aria-label={`${a} сообщает о ${b}: ${count} обращений`} onClick={() => show(`${a} → ${b}`, cells(a, b))} style={{ background: color, color: strength > .65 ? '#fff' : '#1E3A5F' }} className="mono">{count || '—'}</button></td>; })}</tr>)}</tbody></table></div><div className="heatmap-legend"><span>Меньше обращений</span>{['#F5F6F8', '#EBF0F6', '#CBDAE8', '#95AFC9', '#567FA6', '#1E3A5F'].map(c => <i key={c} style={{ background: c }}/>)}<span>Больше обращений</span></div></Panel>
-    <div className="analytics-note"><ChartNoAxesCombined size={16}/><span>За период: {tickets.length} обращений по дате создания. Тренд всегда сравнивает последние 30 дней с предыдущими 30 по всей истории, независимо от фильтра.</span></div>
-    {drill && <Modal title={drill.title} onClose={() => { setDrill(null); if (params.has('cluster')) setParams({}); }}><div className="drill-summary"><ListFilter size={16}/>{drill.tickets.length} обращений · ≈ {number(drill.tickets.reduce((s, t) => s + cost(t), 0))} чел.-ч/мес</div>{!drill.tickets.length ? <Empty text="Обращений на этом стыке нет"/> : <div className="drill-list">{drill.tickets.map(t => <article key={t.id}><div className="between"><span className="mono ticket-id">{t.id}</span><Badge status={t.status}/></div><h3>{t.title}</h3><p className="small muted">{t.authorDepartment} → {t.targetDepartment} · {date(t.createdAt)}</p><Link className="text-button" to={`/tickets/${t.id}`} onClick={() => { selectUser(t.assigneeId); setDrill(null); }}>Открыть как ответственный <ArrowUpRight size={14}/></Link></article>)}</div>}</Modal>}
-  </>;
+  return (
+    <>
+      <PageTitle
+        title="Аналитика обращений"
+        subtitle="Повторяющиеся проблемы, потери времени и результат изменений · вся компания"
+        action={
+          <div className="segmented compact">
+            {[
+              [30, '30 дней'],
+              [90, '90 дней'],
+              [0, 'Всё время'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                className={days === value ? 'selected' : ''}
+                onClick={() => {
+                  setDays(Number(value));
+                  setDrill(null);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        }
+      />
+      <ErrorMessage text={error} />
+      {loading && <Loading />}
+      <Kpis data={data} />
+      <div className="analytics-top">
+        <Panel
+          title="Динамика по неделям"
+          aside={
+            <div className="chart-legend">
+              <span>
+                <i />
+                Новые
+              </span>
+              <span>
+                <i />
+                Реализовано
+              </span>
+            </div>
+          }
+        >
+          <WeeklyChart tickets={tickets} />
+        </Panel>
+        <SlaPanel data={data} show={show} />
+      </div>
+      <div className="distribution-grid">
+        <Distribution title="По типам" data={group('type')} />
+        <Distribution title="По статусам" data={group('status')} />
+        <Distribution title="По категориям" data={group('category')} limit={7} />
+      </div>
+      <ClustersTable data={data} show={show} />
+      <FrictionMatrix data={data} show={show} />
+      <div className="analytics-note">
+        <ChartNoAxesCombined size={16} />
+        <span>
+          За период: {tickets.length} обращений по дате создания. Тренд всегда сравнивает последние
+          30 дней с предыдущими 30 по всей истории, независимо от фильтра.
+        </span>
+      </div>
+      {drill && (
+        <Drilldown
+          drill={drill}
+          onClose={() => {
+            setDrill(null);
+            if (params.has('cluster')) setParams({});
+          }}
+        />
+      )}
+    </>
+  );
 }

@@ -1,41 +1,103 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Clock3, Paperclip, ScanSearch, Send, Wand2, X } from 'lucide-react';
-import { createTicket, findSimilar, joinTicket, previewRouting, suggestStructure } from '../api';
+import { ArrowLeft, Send } from 'lucide-react';
+import { createTicket, previewRouting } from '../api';
 import { useApp } from '../store';
-import type { Frequency, RoutePreview, Structure, Ticket, TicketDraft, TicketType } from '../types';
-import { cost, date, monthly, number } from '../lib/format';
-import { Badge, Empty, ErrorMessage, Field, Loading, PageTitle, Panel } from '../components/ui';
+import type { RoutePreview, TicketDraft } from '../types';
+import { ErrorMessage, Loading, PageTitle } from '../components/ui';
+import { ContentFields } from './new-ticket/ContentFields';
+import { RoutingPreview } from './new-ticket/RoutingPreview';
+import { SimilarTickets } from './new-ticket/SimilarTickets';
 
-export function CostFields({ frequency, minutes, onChange }: { frequency: Frequency; minutes: number; onChange: (frequency: Frequency, minutes: number) => void }) { return <div className="form-grid"><Field label="Как часто?"><select value={frequency} onChange={e => onChange(e.target.value as Frequency, minutes)}>{['ежедневно', 'еженедельно', 'ежемесячно', 'разово'].map(f => <option key={f}>{f}</option>)}</select></Field><Field label="Сколько времени теряете за раз?"><select value={minutes} onChange={e => onChange(frequency, Number(e.target.value))}>{[[15, '≈ 15 мин'], [30, '≈ 30 мин'], [60, '≈ 1 ч'], [120, '≈ 2 ч+']].map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select></Field></div>; }
 export function NewTicket() {
-  const { catalog, userId, refresh, notify } = useApp(); const navigate = useNavigate();
-  const [draft, setDraft] = useState<TicketDraft>({ type: 'Проблема', category: catalog!.categories[0], targetDepartment: 'Закупки', text: '', solution: '', effect: '', priority: 'Средний', frequency: 'еженедельно', minutes: 30, attachments: [] });
-  const [similar, setSimilar] = useState<Ticket[]>([]); const [finding, setFinding] = useState(false); const [route, setRoute] = useState<RoutePreview | null>(null); const [routeError, setRouteError] = useState(''); const [structure, setStructure] = useState<Structure | null>(null);
-  const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [joinId, setJoinId] = useState(''); const [context, setContext] = useState('');
-  const change = <K extends keyof TicketDraft>(key: K, value: TicketDraft[K]) => setDraft(d => ({ ...d, [key]: value }));
-  useEffect(() => { let live = true; setFinding(draft.text.length >= 8); const timer = setTimeout(() => { findSimilar(draft.text, userId).then(t => { if (live) setSimilar(t); }).catch(e => { if (live) setError(e.message); }).finally(() => { if (live) setFinding(false); }); }, 450); return () => { live = false; clearTimeout(timer); }; }, [draft.text, userId]);
-  useEffect(() => { let live = true; setRoute(null); setRouteError(''); previewRouting(draft.category, draft.targetDepartment).then(r => { if (live) setRoute(r); }).catch(e => { if (live) setRouteError(e.message); }); return () => { live = false; }; }, [draft.category, draft.targetDepartment]);
-  if (!catalog) return null;
-  return <><Link to="/mine" className="back-link"><ArrowLeft size={15}/>Мои обращения</Link><PageTitle title="Новое обращение" subtitle="Опишите ситуацию. Система направит обращение ответственному."/>
-    <div className="compose-layout"><form className="panel compose-form" onSubmit={async e => { e.preventDefault(); setBusy(true); setError(''); try { const t = await createTicket(draft, userId); await refresh(); notify(`${t.id}: обращение зарегистрировано`); navigate(`/tickets/${t.id}`); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }}>
-    <div className="panel-heading"><h2>Содержание обращения</h2><span className="quiet-label">Обязательные поля отмечены *</span></div><div className="panel-body">
-    <fieldset className="type-field"><legend>Тип обращения *</legend><div className="segmented">{(['Проблема', 'Предложение', 'Положительный отзыв'] as TicketType[]).map(type => <button type="button" key={type} className={type === draft.type ? 'selected' : ''} onClick={() => change('type', type)}>{type}</button>)}</div></fieldset>
-    <div className="form-grid"><Field label="Категория *"><select value={draft.category} onChange={e => change('category', e.target.value)}>{catalog.categories.map(c => <option key={c}>{c}</option>)}</select></Field><Field label="К какому подразделению относится *"><select value={draft.targetDepartment} onChange={e => change('targetDepartment', e.target.value)}>{catalog.departments.map(d => <option key={d}>{d}</option>)}</select></Field></div>
-    <Field label="Описание ситуации *" hint="Что происходит, на каком этапе и как это влияет на работу. Не указывайте конфиденциальные сведения."><textarea required minLength={20} maxLength={6000} rows={7} placeholder="Например: в заявках на закупку оборудования не хватает назначения изделия и требуемых параметров…" value={draft.text} onChange={e => { change('text', e.target.value); setStructure(null); }}/></Field>
-    <div className="structure-button"><button type="button" disabled={busy || draft.text.trim().length < 20} onClick={async () => { setBusy(true); setError(''); try { setStructure(await suggestStructure(draft.text)); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }}><Wand2 size={16}/>Структурировать текст</button><small>Автоподсказка · текст можно проверить</small></div>
-    {structure && <div className="system-box"><div className="section-label"><ScanSearch size={16}/><strong>Предлагаемая структура</strong><span className="badge blue">Автоподсказка</span></div><dl className="structure"><dt>Проблема</dt><dd>{structure.problem}</dd><dt>Предлагаемое решение</dt><dd>{structure.solution}</dd><dt>Ожидаемый эффект</dt><dd>{structure.effect}</dd></dl><p className="small">Категория: {structure.category} · Приоритет: {structure.priority}</p><div className="button-row"><button type="button" onClick={() => { setDraft(d => ({ ...d, text: structure.problem, solution: structure.solution, effect: structure.effect, category: structure.category, priority: structure.priority })); setStructure(null); notify('Структура принята. Поля доступны для редактирования.'); }}><Check size={15}/>Принять</button><button type="button" onClick={() => setStructure(null)}>Отклонить</button></div></div>}
-    <Field label="Предлагаемое решение"><textarea rows={3} placeholder="Как, по вашему мнению, можно улучшить ситуацию?" value={draft.solution} onChange={e => change('solution', e.target.value)}/></Field>
-    {draft.effect && <Field label="Ожидаемый эффект"><textarea rows={2} value={draft.effect} onChange={e => change('effect', e.target.value)}/></Field>}
-    <div className="attachment-row"><label className="button"><Paperclip size={15}/>Прикрепить файл<input type="file" className="sr-only" multiple onChange={e => change('attachments', [...new Set([...draft.attachments, ...Array.from(e.target.files || []).map(f => f.name)])])}/></label><small>В прототипе сохраняются только имена файлов</small></div>
-    {draft.attachments.map(name => <span className="file-chip" key={name}><Paperclip size={13}/>{name}<button type="button" className="icon-button" aria-label={`Удалить ${name}`} onClick={() => change('attachments', draft.attachments.filter(n => n !== name))}><X size={13}/></button></span>)}
-    {draft.type === 'Проблема' && <section className="cost-box"><div className="section-label"><Clock3 size={17}/><h2>Стоимость проблемы</h2></div><p>Два ответа помогут расставить приоритеты по потерям времени.</p><CostFields frequency={draft.frequency} minutes={draft.minutes} onChange={(f, m) => setDraft(d => ({ ...d, frequency: f, minutes: m }))}/><div className="cost-result">Ваша оценка: <strong className="mono">≈ {number(monthly(draft.frequency, draft.minutes))}</strong> чел.-ч/мес{draft.frequency === 'разово' && <small>Разовая потеря: {draft.minutes} мин. Не включается в ежемесячные потери.</small>}</div></section>}
-    <ErrorMessage text={routeError}/>{route ? <div className="route-preview"><Send size={18}/><div><strong>Обращение получит: {route.assignee.name}</strong>{route.fallback && <p className="overdue">{route.primary.name} в отпуске. Выбран резервный ответственный.</p>}<p>Первый ответ до <b>{date(route.responseDueAt)}</b> · решение до {date(route.dueAt)}</p><small>{route.responseDays} и {route.resolutionDays} рабочих дней по правилу категории</small></div></div> : !routeError && <Loading/>}
-    <ErrorMessage text={error}/><div className="form-footer"><Link to="/mine" className="button">Отмена</Link><button className="primary" disabled={busy || !route || draft.text.trim().length < 20}><Send size={16}/>{busy ? 'Сохранение…' : 'Отправить обращение'}</button></div></div></form>
-    <aside className="similar-panel"><Panel title="Похожие обращения" aside={<ScanSearch size={17}/>}><div className="panel-body"><p className="muted small">Возможно, эту проблему уже решают. Присоединитесь и добавьте свой контекст.</p>{finding ? <Loading/> : !similar.length ? <Empty text={draft.text.length < 8 ? 'Начните описывать ситуацию' : 'Похожих открытых обращений нет'}/> : similar.map(t => {
-      const joined = t.authorId === userId || t.participants.some(p => p.userId === userId);
-      return <article className="similar-card" key={t.id}><div className="between"><span className="mono ticket-id">{t.id}</span><Badge status={t.status}/></div><h3>{t.title}</h3><p className="small muted">{t.participants.length + 1} участников · {new Set([t.authorDepartment, ...t.participants.map(p => p.department)]).size} подразделения</p>{t.type === 'Проблема' && <div className="small">≈ <span className="mono">{number(cost(t))}</span> чел.-ч/мес</div>}{joined ? <Link className="text-button" to={`/tickets/${t.id}`}>Уже в ваших обращениях <ArrowRight size={14}/></Link> : <button type="button" className="text-button" onClick={() => { setJoinId(joinId === t.id ? '' : t.id); setContext(''); }}>У меня то же самое → присоединиться</button>}
-      {joinId === t.id && <div className="join-form"><Field label="Ваш контекст *"><textarea rows={3} value={context} onChange={e => setContext(e.target.value)} placeholder="Где и как возникает у вас?"/></Field>{t.type === 'Проблема' && <><CostFields frequency={draft.frequency} minutes={draft.minutes} onChange={(f, m) => setDraft(d => ({ ...d, frequency: f, minutes: m }))}/><p className="small">К потерям добавится ваша оценка: {number(monthly(draft.frequency, draft.minutes))} чел.-ч/мес.</p></>}<button type="button" className="primary" disabled={busy || context.trim().length < 10} onClick={async () => { setBusy(true); setError(''); try { await joinTicket(t.id, context, draft.frequency, draft.minutes, userId); await refresh(); notify(`Вы присоединились к ${t.id}`); navigate(`/tickets/${t.id}`); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }}>Присоединиться</button></div>}</article>;
-    })}</div></Panel><div className="privacy-note"><strong>Что произойдёт дальше</strong><p>Ответственный увидит обращение в очереди. Все ответы, изменения статуса и результат появятся в карточке обращения.</p></div></aside></div>
-  </>;
+  const { catalog, userId, refresh, notify } = useApp();
+  const navigate = useNavigate();
+  const [draft, setDraft] = useState<TicketDraft>({
+    title: '',
+    type: 'Проблема',
+    category: catalog!.categories[0],
+    targetDepartment: 'Закупки',
+    text: '',
+    solution: '',
+    effect: '',
+    priority: 'Средний',
+    frequency: 'еженедельно',
+    minutes: 30,
+    attachments: [],
+  });
+  const [route, setRoute] = useState<RoutePreview | null>(null);
+  const [routeError, setRouteError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let live = true;
+    setRoute(null);
+    setRouteError('');
+    previewRouting(draft.category, draft.targetDepartment)
+      .then((route) => {
+        if (live) setRoute(route);
+      })
+      .catch((error) => {
+        if (live) setRouteError(error.message);
+      });
+    return () => {
+      live = false;
+    };
+  }, [draft.category, draft.targetDepartment]);
+  return (
+    <>
+      <Link to="/mine" className="back-link">
+        <ArrowLeft size={15} />
+        Мои обращения
+      </Link>
+      <PageTitle
+        title="Новое обращение"
+        subtitle="Опишите ситуацию. Система направит обращение ответственному."
+      />
+      <div className="compose-layout">
+        <form
+          className="panel compose-form"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setBusy(true);
+            setError('');
+            try {
+              const ticket = await createTicket(draft, userId);
+              await refresh();
+              notify(`${ticket.id}: обращение зарегистрировано`);
+              navigate(`/tickets/${ticket.id}`);
+            } catch (error) {
+              setError((error as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <div className="panel-heading">
+            <h2>Содержание обращения</h2>
+            <span className="quiet-label">Обязательные поля отмечены *</span>
+          </div>
+          <div className="panel-body">
+            <ContentFields draft={draft} setDraft={setDraft} busy={busy} setBusy={setBusy} />
+            <ErrorMessage text={routeError} />
+            {route ? <RoutingPreview route={route} /> : !routeError && <Loading />}
+            <ErrorMessage text={error} />
+            <div className="form-footer">
+              <Link to="/mine" className="button">
+                Отмена
+              </Link>
+              <button
+                className="primary"
+                disabled={busy || !route || draft.text.trim().length < 20}
+              >
+                <Send size={16} />
+                {busy ? 'Сохранение…' : 'Отправить обращение'}
+              </button>
+            </div>
+          </div>
+        </form>
+        <SimilarTickets draft={draft} setDraft={setDraft} />
+      </div>
+    </>
+  );
 }
