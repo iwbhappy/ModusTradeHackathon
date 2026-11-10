@@ -108,3 +108,27 @@ def test_business_days_skip_holiday_and_honor_working_saturday():
     assert (
         calendar.days_between(datetime(2026, 11, 3, 12), datetime(2026, 11, 5, 12)) == 1
     )
+
+
+def test_audit_chain_detects_edited_and_removed_events():
+    from app.domain.audit_chain import seal, verify
+    from app.models import TicketEvent
+
+    events, previous = [], None
+    for index, text in enumerate(["Зарегистрировано", "В работе", "Реализовано"]):
+        event = TicketEvent(
+            ticket_id="T-1", date=datetime(2026, 11, 2 + index, 10), text=text
+        )
+        seal(event, previous)
+        events.append(event)
+        previous = event
+    assert verify(events) == {
+        "valid": True,
+        "count": 3,
+        "brokenAt": None,
+        "lastHash": events[-1].hash,
+    }
+    events[1].text = "Отклонено"
+    assert verify(events)["brokenAt"] == 2
+    events[1].text = "В работе"
+    assert verify([events[0], events[2]])["brokenAt"] == 2

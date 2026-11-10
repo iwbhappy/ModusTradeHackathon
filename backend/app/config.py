@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./signal.db"
     jwt_secret: str = secrets.token_urlsafe(48)
     jwt_ttl_hours: int = 12
+    # Ключ подписи журнала. В промышленной среде задаётся через AUDIT_KEY и хранится
+    # отдельно от базы данных; значение по умолчанию годится только для демо.
+    audit_key: str = "signal-demo-audit-key"
     business_timezone: str = "Europe/Moscow"
     sla_interval_seconds: int = 60
     storage_directory: Path = Path("storage")

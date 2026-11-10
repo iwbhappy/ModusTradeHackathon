@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from . import models as m
 from .config import settings
 from .db import Base, SessionLocal, now
+from .domain.audit_chain import seal
 from .domain.calendar import calendar
 from .services import cost
 
@@ -145,21 +146,22 @@ def load_seed(db: Session, reset: bool = False) -> int:
                     text=comment["text"],
                 )
             )
-        old_status = None
-        for event in row["events"]:
+        old_status, previous_event = None, None
+        for event in sorted(row["events"], key=lambda e: e["date"]["offsetDays"]):
             status = event.get("status")
-            db.add(
-                m.TicketEvent(
-                    id=event["id"],
-                    ticket_id=ticket.id,
-                    actor_id=names.get(event["actor"]),
-                    date=date(event["date"]),
-                    text=event["text"],
-                    field="status" if status else None,
-                    old_value=old_status if status else None,
-                    new_value=status,
-                )
+            item = m.TicketEvent(
+                id=event["id"],
+                ticket_id=ticket.id,
+                actor_id=names.get(event["actor"]),
+                date=date(event["date"]),
+                text=event["text"],
+                field="status" if status else None,
+                old_value=old_status if status else None,
+                new_value=status,
             )
+            seal(item, previous_event)
+            db.add(item)
+            previous_event = item
             old_status = status or old_status
         if row["clusterId"]:
             db.add(m.TicketCluster(ticket_id=ticket.id, cluster_id=row["clusterId"]))

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from . import models as m
 from .db import now
+from .domain.audit_chain import seal
 from .domain.calendar import calendar
 from .domain.errors import DomainError
 from .domain.routing import choose_assignment
@@ -55,6 +56,13 @@ def audit(
         new_value=new,
         date=at or now(),
     )
+    previous = db.scalars(
+        select(m.TicketEvent)
+        .where(m.TicketEvent.ticket_id == ticket.id)
+        .order_by(m.TicketEvent.seq.desc())
+        .limit(1)
+    ).first()
+    seal(item, previous)
     db.add(item)
     if actor and actor.role == "Руководитель" and not ticket.first_response_at:
         ticket.first_response_at = now()

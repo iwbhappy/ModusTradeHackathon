@@ -151,6 +151,10 @@ class TicketEvent(Base):
     field: Mapped[str | None] = mapped_column(String(40))
     old_value: Mapped[str | None] = mapped_column(Text)
     new_value: Mapped[str | None] = mapped_column(Text)
+    # Цепочка целостности журнала, см. domain/audit_chain.py
+    seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    prev_hash: Mapped[str] = mapped_column(String(64), default="", server_default="")
+    hash: Mapped[str] = mapped_column(String(64), default="", server_default="")
 
 
 class Attachment(Base):

@@ -27,6 +27,12 @@ export function Tracking({ t }: { t: Ticket }) {
       plan: businessDays(new Date(t.dueAt), 3),
     },
   ];
+  const facts = stageDefs.map((stage, i) => {
+    const event = t.events.find((e) => e.status && stage.statuses.includes(e.status));
+    return (
+      event?.date || (i === 3 ? t.implementedAt || t.closedAt : i === 4 ? t.closedAt : undefined)
+    );
+  });
 
   return (
     <Panel className="tracking-panel">
@@ -44,20 +50,26 @@ export function Tracking({ t }: { t: Ticket }) {
       </div>
       <ol className="tracking">
         {stageDefs.map((stage, i) => {
-          const event = t.events.find((e) => e.status && stage.statuses.includes(e.status));
-          const fact =
-            event?.date ||
-            (i === 3 ? t.implementedAt || t.closedAt : i === 4 ? t.closedAt : undefined);
-          const skipped = terminal(t) && !fact && !(i === 4 && t.status === 'Реализовано');
+          const fact = facts[i];
+          // Этап без собственной даты, после которого работа уже пошла дальше.
+          const passed = !fact && facts.slice(i + 1).some(Boolean);
+          const skipped =
+            terminal(t) && !fact && !passed && !(i === 4 && t.status === 'Реализовано');
           return (
-            <li className={fact ? 'complete' : ''} key={stage.title}>
+            <li className={fact || passed ? 'complete' : ''} key={stage.title}>
               <span className="track-circle">
-                {fact ? <Check size={13} /> : skipped ? '—' : i + 1}
+                {fact || passed ? <Check size={13} /> : skipped ? '—' : i + 1}
               </span>
               <div>
                 <strong>{stage.title}</strong>
                 <small>
-                  {fact ? date(fact) : skipped ? 'Не потребовалось' : `План: ${date(stage.plan)}`}
+                  {fact
+                    ? date(fact)
+                    : passed
+                      ? 'Пройдено'
+                      : skipped
+                        ? 'Не потребовалось'
+                        : `План: ${date(stage.plan)}`}
                 </small>
               </div>
             </li>

@@ -2458,3 +2458,29 @@ hr {
   flex: 1;
   min-width: 0;
 }
+
+.journal-integrity {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 18px 0;
+  padding: 9px 12px;
+  border: 1px solid #cfe0d3;
+  border-radius: 4px;
+  background: #f4f9f5;
+  color: #2f6140;
+}
+.journal-integrity p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.journal-integrity .mono {
+  margin-left: 8px;
+  color: #6c7785;
+}
+.journal-integrity.broken {
+  border-color: #e0b98a;
+  background: #fff6ea;
+  color: #8a4b00;
+}

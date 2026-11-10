@@ -63,6 +63,8 @@ export interface Ticket {
   defaultConfirmed?: boolean;
   monthlyCost?: number;
   attachmentFiles?: AttachmentInfo[];
+  /** Результат проверки цепочки подписей журнала; в mock-режиме отсутствует. */
+  integrity?: JournalIntegrity | null;
   authorId: string;
   authorDepartment: string;
   targetDepartment: string;
@@ -219,4 +221,11 @@ export interface Database {
   tickets: Ticket[];
   users: User[];
   rules: Rule[];
+}
+
+export interface JournalIntegrity {
+  valid: boolean;
+  count: number;
+  brokenAt: number | null;
+  lastHash: string;
 }

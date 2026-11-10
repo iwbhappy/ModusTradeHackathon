@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from .models import Category, Department, Ticket, User, Cluster, RoutingRule, Attachment
 from .domain.workflow import STATUSES, TRANSITIONS, TERMINAL
+from .domain.audit_chain import verify
 from .domain.calendar import calendar
 from .db import now
 
@@ -105,6 +106,7 @@ def ticket_view(db: Session, t: Ticket, public: bool = False):
             }
             for e in t.events
         ],
+        "integrity": None if public else verify(t.events),
         "participantCount": len(t.participants),
         "participants": [
             {
