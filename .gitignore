@@ -1,0 +1,9 @@
+frontend/node_modules/
+frontend/dist/
+frontend/.npm-cache/
+*.local
+.browser-profile/
+.browser-profile-edge/
+frontend/.dev-*.log
+*.docx
+.claude/settings.local.json
