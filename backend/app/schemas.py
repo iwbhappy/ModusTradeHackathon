@@ -39,6 +39,11 @@ class TextInput(Input):
     text: str = Field(min_length=1, max_length=6000)
 
 
+class StructureInput(TextInput):
+    category: str = Field(default="", max_length=200)
+    target_department: str = Field(default="", max_length=200)
+
+
 class JoinInput(Input):
     context: str = Field(min_length=10, max_length=6000)
     frequency: Literal["ежедневно", "еженедельно", "ежемесячно", "разово"]

@@ -3,6 +3,7 @@ import { ClustersTable } from './analytics/ClustersTable';
 import { EmergingProblems } from './analytics/EmergingProblems';
 import { FrictionMatrix } from './analytics/FrictionMatrix';
 import { Kpis } from './analytics/Kpis';
+import { ManagerSummary } from './analytics/ManagerSummary';
 import { Drilldown } from './analytics/Drilldown';
 import { Distribution } from './analytics/Distribution';
 import { WeeklyChart } from './analytics/WeeklyChart';
@@ -114,6 +115,7 @@ export function AnalyticsPage() {
         </div>
       )}
       <Kpis data={data} />
+      <ManagerSummary key={userId} days={days} userId={userId} revision={JSON.stringify(data)} />
       <div className="analytics-top">
         <Panel
           title="Динамика по неделям"

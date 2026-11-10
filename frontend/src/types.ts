@@ -107,7 +107,12 @@ export interface TicketDraft {
   minutes: number;
   attachments: string[];
 }
-export interface Structure {
+export interface GenerationMeta {
+  source: 'llm' | 'rules';
+  cached: boolean;
+  notice?: string;
+}
+export interface Structure extends GenerationMeta {
   title: string;
   problem: string;
   solution: string;
@@ -127,6 +132,20 @@ export interface AiStatus {
   search: 'semantic' | 'rules';
   model: string;
   local: boolean;
+  llm: {
+    provider: 'gemini' | 'none';
+    model: string;
+    enabled: boolean;
+    callsToday: number;
+    tokensToday: number;
+  };
+}
+export interface ResponseDraft extends GenerationMeta {
+  text: string;
+}
+export interface ManagerSummary extends GenerationMeta {
+  highlights: string[];
+  actions: { target: string; action: string }[];
 }
 export interface EmergingGroup {
   tickets: { id: string; title: string }[];

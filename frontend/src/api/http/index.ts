@@ -1,6 +1,8 @@
 import type {
   Analytics,
   AiStatus,
+  ManagerSummary,
+  ResponseDraft,
   AnalyticsFilters,
   AppNotification,
   AttachmentInfo,
@@ -64,9 +66,12 @@ export const getEmerging = (userId: string) =>
   request<EmergingGroup[]>('/analytics/emerging?days=90', {}, userId);
 export const createCluster = (title: string, ticketIds: string[], userId: string) =>
   post<{ id: string; title: string }>('/analytics/clusters', { title, ticketIds }, userId);
-export const suggestStructure = (text: string) => post<Structure>('/ai/structure', { text });
-export const draftResponse = async (id: string, status: Status, userId: string) =>
-  (await post<{ text: string }>(`/tickets/${id}/draft-response`, { status }, userId)).text;
+export const suggestStructure = (text: string, context: SimilarityContext = {}) =>
+  post<Structure>('/ai/structure', { text, ...context });
+export const draftResponse = (id: string, status: Status, userId: string) =>
+  post<ResponseDraft>(`/tickets/${id}/draft-response`, { status }, userId);
+export const generateSummary = (days: number, userId: string) =>
+  post<ManagerSummary>(`/analytics/summary?${query({ days })}`, {}, userId);
 export const getAnalytics = (days: number, userId: string) =>
   request<Analytics>(`/analytics?${query({ days })}`, {}, userId);
 export const getAnalyticsTickets = (days: number, filters: AnalyticsFilters, userId: string) =>

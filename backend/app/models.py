@@ -205,3 +205,22 @@ class TicketEmbedding(Base):
     model: Mapped[str] = mapped_column(String(200))
     text_hash: Mapped[str] = mapped_column(String(64))
     vector: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class LLMCache(Base):
+    __tablename__ = "llm_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    function: Mapped[str] = mapped_column(String(30))
+    model: Mapped[str] = mapped_column(String(200))
+    response: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+
+
+class LLMUsage(Base):
+    """Суточные расходы сохраняются до вызова API, включая неудачные попытки."""
+
+    __tablename__ = "llm_usage"
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    calls: Mapped[int] = mapped_column(Integer, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)

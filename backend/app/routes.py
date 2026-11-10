@@ -17,6 +17,8 @@ from .storage import storage
 from .ai.clusters import create_cluster, emerging
 from .ai.embeddings import embedder, load_vectors, sync_embeddings
 from .ai.provider import provider
+from .ai.llm import GeminiProvider
+from .ai.summary import summary_input
 
 router = APIRouter(prefix="/api")
 
@@ -414,45 +416,110 @@ def similar(data: s.SimilarInput, db: Database, user: CurrentUser):
                 "matchExplanation": item["matchExplanation"],
                 "outcome": item["outcome"],
                 # Итог рассмотрения виден всем: он объясняет, нужно ли новое обращение.
-                "outcomeText": ticket.rejection
-                if item["outcome"] == "rejected"
-                else ticket.changed,
+                "outcomeText": (
+                    ticket.rejection
+                    if item["outcome"] == "rejected"
+                    else ticket.changed
+                ),
             }
         )
     return result
 
 
 @router.get("/ai/status")
-def ai_status(user: CurrentUser):
+def ai_status(db: Database, user: CurrentUser):
     """Какой режим AI сейчас активен — интерфейс подписывает подсказки честно."""
     return {
         "search": "semantic" if embedder.ready else "rules",
         "model": embedder.name if embedder.ready else "",
         "local": True,
+        "llm": GeminiProvider().status(db),
     }
 
 
 @router.post("/ai/structure")
-def structure(data: s.TextInput, user: CurrentUser):
+def structure(data: s.StructureInput, db: Database, user: CurrentUser):
     if user.role != "Сотрудник":
         raise DomainError("Структуратор доступен сотруднику", 403)
     if len(data.text.strip()) < 20:
         raise DomainError("Для анализа нужно минимум 20 символов", 422)
-    return provider.structure(data.text, "", "", [])
+    categories = list(db.scalars(select(m.Category.name).order_by(m.Category.id)))
+    departments = set(db.scalars(select(m.Department.name)))
+    if data.category and data.category not in categories:
+        raise DomainError("Выберите категорию из справочника", 422)
+    if data.target_department and data.target_department not in departments:
+        raise DomainError("Выберите подразделение из справочника", 422)
+    return GeminiProvider().structure(
+        db, data.text, data.category, data.target_department, categories
+    )
 
 
 @router.post("/tickets/{ticket_id}/draft-response")
 def draft(ticket_id: str, data: s.StatusChange, db: Database, user: CurrentUser):
     ticket = require_ticket(db, user, ticket_id, manage=True)
-    return {
-        "text": provider.draft(
-            ticket.title,
-            db.get(m.Category, ticket.category_id).name,
-            db.get(m.Department, ticket.target_department_id).name,
-            [],
-            data.status,
+    if data.status not in {
+        "На рассмотрении",
+        "В работе",
+        "Ожидает уточнения",
+        "Реализовано",
+        "Отклонено",
+    }:
+        raise DomainError("Выберите допустимый статус для черновика", 422)
+    categories = {c.id: c.name for c in db.scalars(select(m.Category))}
+    departments = {d.id: d.name for d in db.scalars(select(m.Department))}
+    vectors = load_vectors(db)
+    candidates = [
+        {
+            "id": t.id,
+            "title": t.title,
+            "text": t.text,
+            "status": t.status,
+            "category": categories[t.category_id],
+            "targetDepartment": departments[t.target_department_id],
+            "vector": vectors.get(t.id),
+        }
+        for t in db.scalars(
+            select(m.Ticket).where(
+                m.Ticket.id != ticket.id,
+                m.Ticket.status.in_(["Реализовано", "Закрыто", "Отклонено"]),
+            )
         )
-    }
+    ]
+    matches = provider.similar(
+        ticket.title + ". " + ticket.text,
+        categories[ticket.category_id],
+        departments[ticket.target_department_id],
+        candidates,
+    )
+    related = []
+    for match in matches[:3]:
+        other = db.get(m.Ticket, match["id"])
+        related.append(
+            {
+                "id": other.id,
+                "title": other.title,
+                "status": other.status,
+                "result": (
+                    other.rejection if other.status == "Отклонено" else other.changed
+                ),
+            }
+        )
+    return GeminiProvider().draft(
+        db,
+        ticket.title,
+        ticket.text,
+        categories[ticket.category_id],
+        departments[ticket.target_department_id],
+        data.status,
+        related,
+    )
+
+
+@router.post("/analytics/summary")
+def generate_summary(
+    db: Database, user: CurrentUser, days: int = Query(90, ge=0, le=3650)
+):
+    return GeminiProvider().summary(db, summary_input(db, user, days))
 
 
 @router.get("/improvements")

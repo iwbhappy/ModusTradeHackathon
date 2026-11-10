@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Wand2 } from 'lucide-react';
 import { draftResponse, reassign, updateStatus } from '../../api';
 import { useApp } from '../../store';
-import type { Status, Ticket } from '../../types';
+import type { GenerationMeta, ResponseDraft, Status, Ticket } from '../../types';
+import { AiSource } from '../../components/AiSource';
 
 import { Field, Panel } from '../../components/ui';
 import type { ActionRunner } from './types';
@@ -29,7 +30,8 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
   const [actionText, setActionText] = useState('');
   const [assignee, setAssignee] = useState(t.assigneeId);
   const [reason, setReason] = useState('');
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState<ResponseDraft | null>(null);
+  const [appliedSource, setAppliedSource] = useState<GenerationMeta | null>(null);
   return (
     <Panel title="Действия ответственного">
       <div className="panel-body">
@@ -39,16 +41,19 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
             run(async () => {
               await updateStatus(id, status, actionText, userId);
               setActionText('');
-              setDraft('');
+              setDraft(null);
+              setAppliedSource(null);
             }, 'Статус и история обновлены');
           }}
         >
           <Field label="Новый статус">
             <select
               value={status}
+              disabled={busy}
               onChange={(e) => {
                 setStatus(e.target.value as Status);
-                setDraft('');
+                setDraft(null);
+                setAppliedSource(null);
               }}
             >
               {allowed.map((s) => (
@@ -101,6 +106,13 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
               }
             />
           </Field>
+          {appliedSource && <AiSource result={appliedSource} />}
+          {status === 'Реализовано' && (
+            <p className="small muted">
+              Отредактируйте черновик: укажите только подтверждённые изменения и замените поля в
+              квадратных скобках.
+            </p>
+          )}
           <button
             type="button"
             className="text-button"
@@ -117,19 +129,20 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
           </button>
           {draft && (
             <div className="system-box">
-              <span className="quiet-label">Автоподсказка</span>
-              <p className="small">{draft}</p>
+              <AiSource result={draft} />
+              <p className="small">{draft.text}</p>
               <div className="button-row">
                 <button
                   type="button"
                   onClick={() => {
-                    setActionText(draft);
-                    setDraft('');
+                    setActionText(draft.text);
+                    setAppliedSource(draft);
+                    setDraft(null);
                   }}
                 >
                   Принять
                 </button>
-                <button type="button" onClick={() => setDraft('')}>
+                <button type="button" onClick={() => setDraft(null)}>
                   Отклонить
                 </button>
               </div>

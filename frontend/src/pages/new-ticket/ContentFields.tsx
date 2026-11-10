@@ -86,6 +86,8 @@ export function ContentFields({
       </Field>
       <StructureSuggestion
         text={draft.text}
+        category={draft.category}
+        targetDepartment={draft.targetDepartment}
         busy={busy}
         setBusy={setBusy}
         onAccept={(structure) => {

@@ -6,6 +6,7 @@ export {
   findSimilar,
   suggestStructure,
   draftResponse,
+  generateSummary,
   getAiStatus,
   getEmerging,
   createCluster,

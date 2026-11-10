@@ -44,6 +44,8 @@ export const suggestStructure: typeof Http.suggestStructure = (...args) =>
   adapter.then((api) => api.suggestStructure(...args));
 export const draftResponse: typeof Http.draftResponse = (...args) =>
   adapter.then((api) => api.draftResponse(...args));
+export const generateSummary: typeof Http.generateSummary = (...args) =>
+  adapter.then((api) => api.generateSummary(...args));
 export const getAnalytics: typeof Http.getAnalytics = (...args) =>
   adapter.then((api) => api.getAnalytics(...args));
 export const getAnalyticsTickets: typeof Http.getAnalyticsTickets = (...args) =>

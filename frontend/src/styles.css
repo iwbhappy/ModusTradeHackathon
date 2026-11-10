@@ -2484,3 +2484,22 @@ hr {
   background: #fff6ea;
   color: #8a4b00;
 }
+.ai-source {
+  margin: 8px 0;
+}
+.ai-source p {
+  margin: 4px 0;
+}
+.manager-summary {
+  margin-bottom: 20px;
+}
+.manager-summary h3 {
+  margin: 16px 0 8px;
+}
+.manager-summary ul {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+.manager-summary li {
+  margin: 6px 0;
+}

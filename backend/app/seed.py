@@ -18,6 +18,9 @@ def load_seed(db: Session, reset: bool = False) -> int:
         return 0
     if reset:
         for table in reversed(Base.metadata.sorted_tables):
+            # Сброс демонстрации не должен обнулять расходы и обходить лимит LLM.
+            if table.name in {"llm_cache", "llm_usage"}:
+                continue
             db.execute(delete(table))
         db.flush()
         db.expunge_all()

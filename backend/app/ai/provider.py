@@ -87,6 +87,56 @@ class RuleBasedProvider:
 
     mode = "rules"
 
+    def summary(self, data: dict) -> dict:
+        kpi = data["kpi"]
+        highlights = [
+            f"За выбранный период: {kpi['total']} обращений, открыто {kpi['openCount']}.",
+            f"Просрочено {kpi['overdueCount']}; доля обращений с результатом — {kpi['resultRate']:.0f}%.",
+            f"Медиана первого ответа — {kpi['medianHours']:.1f} рабочих часов.",
+        ]
+        actions = []
+        if data["clusters"]:
+            cluster = data["clusters"][0]
+            highlights.append(
+                f"Наибольшая оценка потерь: «{cluster['title']}» — {cluster['monthlyCost']:.1f} чел.-ч/мес; "
+                f"тренд обращений за 30 дней: {cluster['trend']:+d}."
+            )
+            actions.append(
+                {
+                    "target": cluster["title"],
+                    "action": "Проверить оценку потерь и согласовать ближайшее улучшение с владельцем процесса.",
+                }
+            )
+        if data["emerging"]:
+            group = data["emerging"][0]
+            highlights.append(
+                f"Новый повторяющийся сигнал: «{group['title']}», обращений: {group['count']}."
+            )
+            actions.append(
+                {
+                    "target": group["title"],
+                    "action": "Рассмотреть группу обращений и решить, оформлять ли её в отдельный кластер.",
+                }
+            )
+        department = next(
+            (s["department"] for s in data["sla"]),
+            data["departments"][0] if data["departments"] else "Все подразделения",
+        )
+        actions.append(
+            {
+                "target": department,
+                "action": "Проверить просроченные обращения, ответственных и ближайшие сроки ответа.",
+            }
+        )
+        if len(actions) < 2:
+            actions.append(
+                {
+                    "target": department,
+                    "action": "Сопоставить динамику входящих обращений с реализованными улучшениями.",
+                }
+            )
+        return {"highlights": highlights[:5], "actions": actions[:3]}
+
     def similar(
         self, text: str, category: str, department: str, candidates: list[dict]
     ) -> list[dict]:
@@ -175,9 +225,11 @@ class RuleBasedProvider:
             or "Согласовать порядок работы и назначить владельца процесса.",
             "effect": "Сократить уточнения и время передачи работы между подразделениями.",
             "category": categories.get(cluster, category or "Корпоративная среда"),
-            "priority": "Высокий"
-            if re.search("сроч|срыв|теря|ошиб|повторн", text, re.I)
-            else "Средний",
+            "priority": (
+                "Высокий"
+                if re.search("сроч|срыв|теря|ошиб|повторн", text, re.I)
+                else "Средний"
+            ),
         }
 
     def draft(

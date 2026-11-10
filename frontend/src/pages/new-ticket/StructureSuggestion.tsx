@@ -1,23 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, ScanSearch, Wand2 } from 'lucide-react';
 import { suggestStructure } from '../../api';
 import type { Structure } from '../../types';
 import { ErrorMessage } from '../../components/ui';
+import { AiSource } from '../../components/AiSource';
 
 export function StructureSuggestion({
   text,
+  category,
+  targetDepartment,
   busy,
   setBusy,
   onAccept,
 }: {
   text: string;
+  category: string;
+  targetDepartment: string;
   busy: boolean;
   setBusy: (busy: boolean) => void;
   onAccept: (structure: Structure) => void;
 }) {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [error, setError] = useState('');
-  useEffect(() => setStructure(null), [text]);
+  const requestVersion = useRef(0);
+  useEffect(() => {
+    requestVersion.current += 1;
+    setStructure(null);
+    setError('');
+    return () => {
+      requestVersion.current += 1;
+    };
+  }, [text, category, targetDepartment]);
   return (
     <>
       <div className="structure-button">
@@ -25,12 +38,14 @@ export function StructureSuggestion({
           type="button"
           disabled={busy || text.trim().length < 20}
           onClick={async () => {
+            const version = ++requestVersion.current;
             setBusy(true);
             setError('');
             try {
-              setStructure(await suggestStructure(text));
+              const result = await suggestStructure(text, { category, targetDepartment });
+              if (version === requestVersion.current) setStructure(result);
             } catch (error) {
-              setError((error as Error).message);
+              if (version === requestVersion.current) setError((error as Error).message);
             } finally {
               setBusy(false);
             }
@@ -39,7 +54,7 @@ export function StructureSuggestion({
           <Wand2 size={16} />
           Структурировать текст
         </button>
-        <small>Автоподсказка · текст можно проверить</small>
+        <small>При включённом Gemini текст отправляется во внешний сервис по кнопке.</small>
       </div>
       <ErrorMessage text={error} />
       {structure && (
@@ -47,8 +62,8 @@ export function StructureSuggestion({
           <div className="section-label">
             <ScanSearch size={16} />
             <strong>Предлагаемая структура</strong>
-            <span className="badge blue">Автоподсказка</span>
           </div>
+          <AiSource result={structure} />
           <dl className="structure">
             <dt>Кратко о сути</dt>
             <dd>{structure.title}</dd>
