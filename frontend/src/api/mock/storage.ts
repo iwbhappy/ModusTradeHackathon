@@ -1,5 +1,6 @@
 import { createSeed, catalogBase } from '../../data/seed';
 import type { Catalog, Database, Status, Ticket, User } from '../../types';
+import { canManage as manages, canRead as reads } from '../../lib/permissions';
 const KEY = 'signal-demo-v4';
 export let db: Database;
 try {
@@ -30,15 +31,8 @@ export const ticket = (id: string) => {
   if (!t) throw new Error('Обращение не найдено');
   return t;
 };
-const canManage = (u: User, t: Ticket) =>
-  u.role === 'Руководитель' &&
-  (t.assigneeId === u.id ||
-    (u.isDepartmentHead && user(t.assigneeId).department === u.department) ||
-    (!!u.canViewCompanyAnalytics && !!t.escalated));
-export const canRead = (u: User, t: Ticket) =>
-  canManage(u, t) ||
-  (u.role === 'Сотрудник' &&
-    (t.authorId === u.id || t.participants.some((p) => p.userId === u.id)));
+export const canManage = (u: User, t: Ticket) => manages(u, t, db.users);
+export const canRead = (u: User, t: Ticket) => reads(u, t, db.users);
 export function assertManager(u: User, t: Ticket) {
   if (!canManage(u, t))
     throw new Error('Действие доступно ответственному и руководителю его подразделения');
@@ -50,7 +44,7 @@ export function event(t: Ticket, actor: User, text: string, status?: Status) {
 }
 export async function getCatalog(): Promise<Catalog> {
   await pause();
-  return clone({ ...catalogBase, users: db.users, rules: db.rules });
+  return clone({ ...catalogBase, demoMode: true, users: db.users, rules: db.rules });
 }
 export async function resetDemo() {
   await pause();

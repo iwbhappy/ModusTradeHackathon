@@ -4,7 +4,7 @@ import pytest
 
 from app.domain.calendar import BusinessCalendar
 from app.domain.errors import DomainError
-from app.domain.permissions import can_read
+from app.domain.permissions import can_manage, can_read
 from app.domain.routing import choose_assignment
 from app.domain.workflow import validate_transition
 from app.models import Participant, RoutingRule, Ticket, User
@@ -42,10 +42,31 @@ def test_employee_cannot_read_other_ticket():
     assert can_read(employee, ticket) is False
 
 
-def test_admin_cannot_read_even_own_assignment():
+def test_admin_can_read_ticket_but_unrelated_employee_cannot():
     admin = User(id="admin", role="Администратор")
     ticket = Ticket(author_id="admin", assignee_id="admin", participants=[])
-    assert can_read(admin, ticket) is False
+    assert can_read(admin, ticket) is True
+    assert can_read(User(id="employee", role="Сотрудник"), ticket) is False
+
+
+def test_department_head_reads_employee_ticket_assigned_outside_without_managing():
+    head = User(
+        id="head",
+        role="Руководитель",
+        department_id="purchase",
+        is_department_head=True,
+        can_view_company_analytics=False,
+    )
+    assignee = User(id="catalog", role="Руководитель", department_id="engineering")
+    ticket = Ticket(
+        author_id="employee",
+        author_department_id="purchase",
+        assignee_id=assignee.id,
+        assignee=assignee,
+        participants=[],
+    )
+    assert can_read(head, ticket) is True
+    assert can_manage(head, ticket) is False
 
 
 def test_joined_employee_can_read_ticket():

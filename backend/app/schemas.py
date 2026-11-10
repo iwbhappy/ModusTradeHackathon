@@ -14,6 +14,7 @@ class Login(Input):
 
 
 class TicketDraft(Input):
+    assignee_id: str | None = Field(default=None, min_length=1, max_length=80)
     title: str = Field(default="", max_length=80)
     text: str = Field(min_length=20, max_length=6000)
     type: Literal["Проблема", "Предложение", "Положительный отзыв"]

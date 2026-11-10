@@ -193,7 +193,7 @@ def summary(db: Session, user: m.User, days: int):
             for a, b, n in matrix_rows
         ],
         "sla": [{"department": departments[d], "count": n} for d, n in sla_rows],
-        "companyScope": user.can_view_company_analytics,
+        "companyScope": user.role == "Администратор" or user.can_view_company_analytics,
     }
 
 

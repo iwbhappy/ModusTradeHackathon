@@ -1,7 +1,18 @@
 import { detectCluster } from '../../data/seed';
 import { businessDays, overdue, terminal } from '../../lib/format';
 import type { Frequency, Status, Ticket, TicketDraft, TicketFilters } from '../../types';
-import { db, pause, clone, user, ticket, canRead, assertManager, event, persist } from './storage';
+import {
+  db,
+  pause,
+  clone,
+  user,
+  ticket,
+  canRead,
+  canManage,
+  assertManager,
+  event,
+  persist,
+} from './storage';
 import { route } from './routing';
 import { makeTitle } from '../../lib/title';
 import { attachmentMetadata } from './extras';
@@ -46,6 +57,13 @@ export async function createTicket(draft: TicketDraft, userId: string) {
   if (draft.text.trim().length < 20) throw new Error('Опишите ситуацию: минимум 20 символов');
   if (draft.title.trim().length > 80) throw new Error('Краткий заголовок: не более 80 символов');
   const routing = route(draft.category, draft.targetDepartment);
+  const assignee = draft.assigneeId
+    ? db.users.find((u) => u.id === draft.assigneeId)
+    : routing.assignee;
+  if (!assignee || assignee.role !== 'Руководитель')
+    throw new Error('Получатель должен быть существующим руководителем');
+  if (assignee.vacation)
+    throw new Error('Выбранный получатель в отпуске. Выберите другого руководителя');
   const now = new Date().toISOString();
   const t: Ticket = {
     ...clone(draft),
@@ -55,7 +73,7 @@ export async function createTicket(draft: TicketDraft, userId: string) {
     attachmentFiles: attachmentMetadata(draft.attachmentIds || []),
     authorId: userId,
     authorDepartment: author.department,
-    assigneeId: routing.assignee.id,
+    assigneeId: assignee.id,
     status: 'Новое',
     createdAt: now,
     responseDueAt: routing.responseDueAt,
@@ -71,11 +89,17 @@ export async function createTicket(draft: TicketDraft, userId: string) {
   event(
     t,
     author,
-    `Зарегистрировано. Назначен: ${routing.assignee.name}` +
-      (routing.fallback ? ' (резервный: основной в отпуске)' : '') +
+    `Зарегистрировано. Назначен: ${assignee.name}` +
+      (!draft.assigneeId && routing.fallback ? ' (резервный: основной в отпуске)' : '') +
       `. Первый ответ до ${new Date(routing.responseDueAt).toLocaleDateString('ru-RU')}`,
     'Новое',
   );
+  if (draft.assigneeId)
+    event(
+      t,
+      author,
+      `Получатель выбран автором: ${assignee.name} (по правилу — ${routing.assignee.name})`,
+    );
   db.tickets.push(t);
   persist();
   return clone(t);
@@ -121,6 +145,8 @@ export async function addComment(id: string, text: string, userId: string) {
   const t = ticket(id);
   const actor = user(userId);
   if (!canRead(actor, t)) throw new Error('Нет доступа');
+  if (actor.role !== 'Сотрудник' && !canManage(actor, t))
+    throw new Error('Обращение доступно только для чтения');
   if (!text.trim()) throw new Error('Введите комментарий');
   t.comments.push({
     id: crypto.randomUUID(),
@@ -139,7 +165,7 @@ export async function reassign(id: string, assigneeId: string, reason: string, u
   await pause();
   const t = ticket(id);
   const actor = user(userId);
-  assertManager(actor, t);
+  if (actor.role !== 'Администратор') assertManager(actor, t);
   const assignee = user(assigneeId);
   if (terminal(t)) throw new Error('Рассмотрение завершено');
   if (assignee.role !== 'Руководитель' || assignee.vacation || assigneeId === t.assigneeId)

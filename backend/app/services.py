@@ -111,6 +111,20 @@ def assignment(db: Session, category_name: str, department_name: str):
 def route_preview(db: Session, category: str, department: str):
     from .presenters import user_view, iso
 
+    if not department:
+        category_item = lookup(db, m.Category, category)
+        rules = db.scalars(select(m.RoutingRule).order_by(m.RoutingRule.id)).all()
+        category_rules = [r for r in rules if r.category_id == category_item.id]
+        rule = next((r for r in category_rules if r.department_id is None), None)
+        rule = rule or next(iter(category_rules), None)
+        rule = rule or next(
+            (r for r in rules if r.category_id is None and r.department_id is None),
+            None,
+        )
+        primary = db.get(m.User, rule.primary_id) if rule else None
+        if not primary:
+            raise DomainError("Для категории не настроен основной ответственный", 422)
+        department = primary.department.name
     selected, _, _ = assignment(db, category, department)
     rule = selected.rule
     response, resolution = (
@@ -160,6 +174,15 @@ def create_ticket(db: Session, user: m.User, draft: TicketDraft) -> m.Ticket:
     )
     rule = selected.rule
     created = now()
+    assignee = selected.user
+    if draft.assignee_id is not None:
+        assignee = db.get(m.User, draft.assignee_id)
+        if not assignee or assignee.role != "Руководитель":
+            raise DomainError("Получатель должен быть существующим руководителем", 422)
+        if assignee.vacation:
+            raise DomainError(
+                "Выбранный получатель в отпуске. Выберите другого руководителя", 422
+            )
     ticket = m.Ticket(
         id=next_ticket_id(db),
         title=make_title(draft.text, draft.title),
@@ -170,7 +193,7 @@ def create_ticket(db: Session, user: m.User, draft: TicketDraft) -> m.Ticket:
         author_id=user.id,
         author_department_id=user.department_id,
         target_department_id=department.id,
-        assignee_id=selected.user.id,
+        assignee_id=assignee.id,
         priority=draft.priority,
         status="Новое",
         created_at=created,
@@ -180,9 +203,9 @@ def create_ticket(db: Session, user: m.User, draft: TicketDraft) -> m.Ticket:
         minutes=draft.minutes,
         solution=draft.solution,
         effect=draft.effect,
-        monthly_cost=cost(draft.frequency, draft.minutes)
-        if draft.type == "Проблема"
-        else 0,
+        monthly_cost=(
+            cost(draft.frequency, draft.minutes) if draft.type == "Проблема" else 0
+        ),
     )
     db.add(ticket)
     db.flush()
@@ -195,17 +218,21 @@ def create_ticket(db: Session, user: m.User, draft: TicketDraft) -> m.Ticket:
         db,
         ticket,
         user,
-        f"{selected.reason}: {selected.user.name}",
+        (
+            f"Получатель выбран автором: {assignee.name} (по правилу — {selected.user.name})"
+            if draft.assignee_id is not None
+            else f"{selected.reason}: {assignee.name}"
+        ),
         "assignee",
         None,
-        selected.user.id,
+        assignee.id,
     )
     audit(db, ticket, user, "Обращение зарегистрировано", "status", None, "Новое")
     from .ai.clusters import assign_cluster
 
     db.flush()
     assign_cluster(db, ticket)
-    notify(db, selected.user.id, ticket, f"Новое обращение {ticket.id}: {ticket.title}")
+    notify(db, assignee.id, ticket, f"Новое обращение {ticket.id}: {ticket.title}")
     return ticket
 
 
@@ -230,6 +257,8 @@ def change_status(db: Session, user: m.User, ticket_id: str, status: str, text: 
 
 def add_comment(db: Session, user: m.User, ticket_id: str, text: str):
     ticket = require_ticket(db, user, ticket_id)
+    if user.role != "Сотрудник" and not can_manage(user, ticket):
+        raise DomainError("Обращение доступно только для чтения", 403)
     if not text.strip():
         raise DomainError("Введите комментарий", 422)
     db.add(m.Comment(ticket_id=ticket.id, author_id=user.id, text=text.strip()))

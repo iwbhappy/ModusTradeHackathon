@@ -18,19 +18,27 @@ def can_manage(user: User, ticket: Ticket) -> bool:
 
 def can_read(user: User, ticket: Ticket) -> bool:
     if user.role == "Администратор":
-        return False
-    return can_manage(user, ticket) or (
-        user.role == "Сотрудник"
-        and (
-            ticket.author_id == user.id
-            or any(p.user_id == user.id for p in ticket.participants)
+        return True
+    return (
+        can_manage(user, ticket)
+        or (
+            user.role == "Руководитель"
+            and user.is_department_head
+            and ticket.author_department_id == user.department_id
+        )
+        or (
+            user.role == "Сотрудник"
+            and (
+                ticket.author_id == user.id
+                or any(p.user_id == user.id for p in ticket.participants)
+            )
         )
     )
 
 
 def visible_clause(user: User):
     if user.role == "Администратор":
-        return Ticket.id.is_(None)
+        return True
     if user.role == "Сотрудник":
         return or_(
             Ticket.author_id == user.id,
@@ -40,6 +48,7 @@ def visible_clause(user: User):
         )
     if user.is_department_head:
         return or_(
+            Ticket.author_department_id == user.department_id,
             Ticket.assignee_id == user.id,
             Ticket.assignee_id.in_(
                 select(User.id).where(User.department_id == user.department_id)
@@ -50,8 +59,10 @@ def visible_clause(user: User):
 
 
 def analytics_clause(user: User):
+    if user.role == "Администратор":
+        return True
     if user.role != "Руководитель":
-        raise DomainError("Аналитика доступна руководителю", 403)
+        raise DomainError("Аналитика доступна руководителю и администратору", 403)
     return True if user.can_view_company_analytics else visible_clause(user)
 
 

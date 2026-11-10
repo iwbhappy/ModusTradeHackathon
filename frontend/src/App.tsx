@@ -15,7 +15,7 @@ import { RoutingPage } from './pages/RoutingPage';
 import { UsersPage } from './pages/UsersPage';
 
 export default function App() {
-  const { catalog, userId, load, notice, notify, refresh } = useApp();
+  const { catalog, userId, load, notice, noticeAction, notify, refresh, selectUser } = useApp();
   const navigate = useNavigate();
   const [reset, setReset] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -86,11 +86,21 @@ export default function App() {
               }
             />
             <Route path="/tickets/:id" element={<TicketDetail />} />
+            <Route
+              path="/all"
+              element={
+                current.role === 'Администратор' ? (
+                  <TicketList mode="all" />
+                ) : (
+                  <Navigate to={home} replace />
+                )
+              }
+            />
             <Route path="/done" element={<Improvements />} />
             <Route
               path="/analytics"
               element={
-                current.role === 'Руководитель' ? <AnalyticsPage /> : <Navigate to={home} replace />
+                current.role !== 'Сотрудник' ? <AnalyticsPage /> : <Navigate to={home} replace />
               }
             />
             <Route
@@ -126,6 +136,26 @@ export default function App() {
         <div className="toast" role="status">
           <CheckCheck size={18} />
           {notice}
+          {noticeAction && catalog.demoMode && (
+            <button
+              className="text-button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await selectUser(noticeAction.userId);
+                  navigate(`/tickets/${noticeAction.ticketId}`);
+                  notify('');
+                } catch (error) {
+                  notify((error as Error).message);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {noticeAction.label}
+            </button>
+          )}
           <button
             className="icon-button"
             aria-label="Скрыть уведомление"

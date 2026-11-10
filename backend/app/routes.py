@@ -175,7 +175,7 @@ def confirm(ticket_id: str, data: s.ConfirmInput, db: Database, user: CurrentUse
 
 @router.post("/tickets/{ticket_id}/reassign")
 def reassign(ticket_id: str, data: s.ReassignInput, db: Database, user: CurrentUser):
-    ticket = require_ticket(db, user, ticket_id, manage=True)
+    ticket = require_ticket(db, user, ticket_id, manage=user.role != "Администратор")
     assignee = db.get(m.User, data.assignee_id)
     if (
         ticket.status in TERMINAL
@@ -239,7 +239,7 @@ def join(ticket_id: str, data: s.JoinInput, db: Database, user: CurrentUser):
 
 @router.get("/routing/preview")
 def routing_preview(
-    db: Database, user: CurrentUser, category: str, targetDepartment: str
+    db: Database, user: CurrentUser, category: str, targetDepartment: str = ""
 ):
     return services.route_preview(db, category, targetDepartment)
 
@@ -406,8 +406,6 @@ def download(attachment_id: str, db: Database, user: CurrentUser):
 
 @router.post("/ai/similar")
 def similar(data: s.SimilarInput, db: Database, user: CurrentUser):
-    if user.role == "Администратор":
-        raise DomainError("Администратору недоступен поиск по содержимому", 403)
     categories = {c.id: c.name for c in db.scalars(select(m.Category))}
     departments = {d.id: d.name for d in db.scalars(select(m.Department))}
     vectors = load_vectors(db)

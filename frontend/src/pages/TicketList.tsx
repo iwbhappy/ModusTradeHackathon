@@ -6,6 +6,7 @@ import { listTickets } from '../api';
 import { useApp } from '../store';
 import type { Ticket } from '../types';
 import { cost, overdue } from '../lib/format';
+import { canManage } from '../lib/permissions';
 import {
   Badge,
   Empty,
@@ -16,7 +17,7 @@ import {
   TicketsTable,
 } from '../components/ui';
 
-export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
+export function TicketList({ mode }: { mode: 'mine' | 'inbox' | 'all' }) {
   const { catalog, userId, revision } = useApp();
   const [params, setParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -49,9 +50,17 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
   };
   const tab = params.get('tab') || 'Все';
   const search = params.get('search') || '';
+  const current = catalog?.users.find((u) => u.id === userId);
+  const staffTab = mode === 'inbox' && !!current?.isDepartmentHead;
+  const assigned =
+    mode === 'inbox' && current
+      ? tickets.filter((t) => canManage(current, t, catalog!.users))
+      : tickets;
+  const staff = staffTab ? tickets.filter((t) => t.authorDepartment === current?.department) : [];
+  const scoped = staffTab && tab === 'От моих сотрудников' ? staff : assigned;
   const filtered = useMemo(
     () =>
-      tickets
+      scoped
         .filter(
           (t) =>
             (!search ||
@@ -67,6 +76,7 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
                   !['Реализовано', 'Закрыто', 'Отклонено'].includes(t.status) &&
                   new Date(t.dueAt).getTime() - Date.now() < 3 * 86400000)) &&
             (tab === 'Все' ||
+              (staffTab && tab === 'От моих сотрудников') ||
               (tab === 'Новые'
                 ? t.status === 'Новое'
                 : tab === 'Просрочены'
@@ -82,7 +92,7 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
               ? a.dueAt.localeCompare(b.dueAt)
               : b.createdAt.localeCompare(a.createdAt),
         ),
-    [tickets, params, search, tab, sort],
+    [scoped, params, search, tab, sort, staffTab],
   );
   if (!catalog) return null;
   const actionTickets = tickets.filter(
@@ -91,11 +101,13 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
   return (
     <>
       <PageTitle
-        title={mode === 'mine' ? 'Мои обращения' : 'Входящие'}
+        title={mode === 'mine' ? 'Мои обращения' : mode === 'all' ? 'Все обращения' : 'Входящие'}
         subtitle={
           mode === 'mine'
             ? 'Ваши обращения и проблемы, к которым вы присоединились'
-            : 'Обращения, назначенные вам и вашему подразделению'
+            : mode === 'all'
+              ? 'Общий реестр обращений компании'
+              : 'Ваши назначения и обращения сотрудников подразделения'
         }
         action={
           mode === 'mine' ? (
@@ -140,7 +152,14 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
         <div className="list-tabs" role="group" aria-label="Быстрые фильтры">
           {(mode === 'mine'
             ? ['Все', 'В работе', 'Ждут уточнения']
-            : ['Все', 'Новые', 'Просрочены', 'Ждут уточнения', 'В работе']
+            : [
+                'Все',
+                'Новые',
+                'Просрочены',
+                'Ждут уточнения',
+                'В работе',
+                ...(staffTab ? ['От моих сотрудников'] : []),
+              ]
           ).map((name) => (
             <button
               key={name}
@@ -150,9 +169,10 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
               {name}
               <span>
                 {
-                  tickets.filter(
+                  (name === 'От моих сотрудников' ? staff : assigned).filter(
                     (t) =>
                       name === 'Все' ||
+                      name === 'От моих сотрудников' ||
                       (name === 'Новые'
                         ? t.status === 'Новое'
                         : name === 'Просрочены'
@@ -177,7 +197,7 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
             <select aria-label="Сортировка" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="date">Сначала новые</option>
               <option value="deadline">По сроку решения</option>
-              {mode === 'inbox' && <option value="cost">По стоимости проблемы</option>}
+              {mode !== 'mine' && <option value="cost">По стоимости проблемы</option>}
             </select>
           </label>
         </div>
@@ -185,20 +205,22 @@ export function TicketList({ mode }: { mode: 'mine' | 'inbox' }) {
         {loading ? (
           <Loading />
         ) : tickets.length ? (
-          <TicketsTable tickets={filtered} users={catalog.users} showCost={mode === 'inbox'} />
+          <TicketsTable tickets={filtered} users={catalog.users} showCost={mode !== 'mine'} />
         ) : (
-          <Empty>
-            <Link to="/new">Создать обращение</Link>
-          </Empty>
+          <Empty>{mode === 'mine' && <Link to="/new">Создать обращение</Link>}</Empty>
         )}
         <div className="table-footer">
           <span>
-            Показано {filtered.length} из {tickets.length}
+            Показано {filtered.length} из {scoped.length}
           </span>
           <span>
             {mode === 'mine'
               ? 'Свои и присоединённые обращения'
-              : 'Личные назначения и подразделение ответственного'}
+              : mode === 'all'
+                ? 'Все обращения компании'
+                : tab === 'От моих сотрудников'
+                  ? 'Обращения сотрудников вашего подразделения; внешние назначения доступны для чтения'
+                  : 'Личные назначения и подразделение ответственного'}
           </span>
         </div>
       </Panel>

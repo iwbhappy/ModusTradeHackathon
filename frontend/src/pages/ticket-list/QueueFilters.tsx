@@ -9,7 +9,7 @@ export function QueueFilters({
   setParams,
   set,
 }: {
-  mode: 'mine' | 'inbox';
+  mode: 'mine' | 'inbox' | 'all';
   params: URLSearchParams;
   setParams: SetURLSearchParams;
   set: (key: string, value: string) => void;
@@ -28,7 +28,7 @@ export function QueueFilters({
           onChange={(e) => set('search', e.target.value)}
         />
       </div>
-      {mode === 'inbox' && (
+      {mode !== 'mine' && (
         <>
           <select
             aria-label="Подразделение проблемы"
@@ -62,7 +62,7 @@ export function QueueFilters({
           <option key={s}>{s}</option>
         ))}
       </select>
-      {mode === 'inbox' && (
+      {mode !== 'mine' && (
         <>
           <select
             aria-label="Приоритет"

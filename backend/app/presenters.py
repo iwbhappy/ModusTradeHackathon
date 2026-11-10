@@ -126,6 +126,7 @@ def catalog_view(db: Session, user: User | None = None):
     categories = {c.id: c.name for c in db.query(Category).all()}
     rules = db.query(RoutingRule).all() if user and user.role == "Администратор" else []
     return {
+        "demoMode": True,
         "users": [user_view(u) for u in db.query(User).order_by(User.id).all()],
         "departments": list(departments.values()),
         "categories": list(categories.values()),

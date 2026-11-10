@@ -2,21 +2,44 @@ import { businessDays } from '../../lib/format';
 import type { RoutePreview, Rule } from '../../types';
 import { db, pause, clone, user, persist } from './storage';
 export function route(category: string, target: string): RoutePreview {
+  if (!target) {
+    const categoryRule =
+      db.rules.find((r) => r.category === category && !r.department) ||
+      db.rules.find((r) => r.category === category) ||
+      db.rules.find((r) => !r.category && !r.department);
+    if (!categoryRule) throw new Error('Для категории не настроена маршрутизация');
+    target = user(categoryRule.primaryId).department;
+  }
   const rule =
     db.rules.find((r) => r.category === category && r.department === target) ||
-    db.rules.find((r) => r.category === category && !r.department);
+    db.rules.find((r) => r.category === category && !r.department) ||
+    db.rules.find((r) => !r.category && !r.department);
   if (!rule) throw new Error('Для категории не настроена маршрутизация');
   const primary = user(rule.primaryId);
-  const assignee = primary.vacation ? user(rule.backupId) : primary;
-  if (assignee.vacation)
-    throw new Error(
-      'Основной и резервный ответственные отсутствуют. Администратору необходимо изменить правило.',
-    );
+  const backup = user(rule.backupId);
+  const head = db.users.find(
+    (user) => user.role === 'Руководитель' && user.isDepartmentHead && user.department === target,
+  );
+  const direction = db.users.find(
+    (user) => user.role === 'Руководитель' && user.canViewCompanyAnalytics,
+  );
+  const assignee = !primary.vacation
+    ? primary
+    : !backup.vacation
+      ? backup
+      : (head && !head.vacation ? head : direction || head) ||
+        db.users.find((user) => user.role === 'Руководитель');
+  if (!assignee) throw new Error('В оргструктуре отсутствует руководитель для назначения');
   const now = new Date();
   return {
     assignee,
     primary,
     fallback: primary.vacation,
+    reason: primary.vacation
+      ? !backup.vacation
+        ? 'Основной ответственный в отпуске; назначен резервный'
+        : 'Назначено по резервному правилу: руководителю'
+      : 'Назначено по правилу маршрутизации',
     responseDays: rule.responseDays,
     resolutionDays: rule.resolutionDays,
     responseDueAt: businessDays(now, rule.responseDays),

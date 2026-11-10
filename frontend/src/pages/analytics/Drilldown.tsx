@@ -12,7 +12,8 @@ export function Drilldown({
   drill: { title: string; tickets: Ticket[] };
   onClose: () => void;
 }) {
-  const { selectUser, notify } = useApp();
+  const { selectUser, notify, catalog, userId } = useApp();
+  const admin = catalog?.users.find((u) => u.id === userId)?.role === 'Администратор';
   const navigate = useNavigate();
   return (
     <Modal title={drill.title} onClose={onClose}>
@@ -39,7 +40,7 @@ export function Drilldown({
                 className="text-button"
                 onClick={async () => {
                   try {
-                    await selectUser(t.assigneeId);
+                    if (!admin) await selectUser(t.assigneeId);
                     onClose();
                     navigate(`/tickets/${t.id}`);
                   } catch (error) {
@@ -47,7 +48,8 @@ export function Drilldown({
                   }
                 }}
               >
-                Открыть как ответственный <ArrowUpRight size={14} />
+                {admin ? 'Открыть обращение' : 'Открыть как ответственный'}{' '}
+                <ArrowUpRight size={14} />
               </button>
             </article>
           ))}

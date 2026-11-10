@@ -8,6 +8,9 @@ export function RoutingPreview({ route }: { route: RoutePreview }) {
       <Send size={18} />
       <div>
         <strong>Обращение получит: {route.assignee.name}</strong>
+        <p className="small muted">
+          {route.assignee.role} · {route.assignee.department}
+        </p>
         {route.fallback && (
           <p className="overdue">
             {route.reason || `${route.primary.name} в отпуске. Выбран резервный ответственный.`}

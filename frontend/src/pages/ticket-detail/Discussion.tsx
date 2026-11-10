@@ -7,7 +7,17 @@ import type { Ticket } from '../../types';
 import { date } from '../../lib/format';
 import { Field, Panel } from '../../components/ui';
 import type { ActionRunner } from './types';
-export function Discussion({ t, run, busy }: { t: Ticket; run: ActionRunner; busy: boolean }) {
+export function Discussion({
+  t,
+  run,
+  busy,
+  readOnly = false,
+}: {
+  t: Ticket;
+  run: ActionRunner;
+  busy: boolean;
+  readOnly?: boolean;
+}) {
   const { userId } = useApp();
   const id = t.id;
   const author = t.authorId === userId;
@@ -16,7 +26,9 @@ export function Discussion({ t, run, busy }: { t: Ticket; run: ActionRunner; bus
     <Panel title="Обсуждение" aside={<span className="mono muted">{t.comments.length}</span>}>
       <div className="panel-body">
         {!t.comments.length && (
-          <p className="muted">Комментариев пока нет. Здесь можно уточнить контекст обращения.</p>
+          <p className="muted">
+            Комментариев пока нет.{!readOnly && ' Здесь можно уточнить контекст обращения.'}
+          </p>
         )}
         {t.comments.map((c) => (
           <article className="comment" key={c.id}>
@@ -34,36 +46,38 @@ export function Discussion({ t, run, busy }: { t: Ticket; run: ActionRunner; bus
             Ответьте на запрос. Обращение вернётся на рассмотрение.
           </div>
         )}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(async () => {
-              await addComment(id, comment, userId);
-              setComment('');
-            }, 'Комментарий сохранён');
-          }}
-        >
-          <Field
-            label={
-              author && t.status === 'Ожидает уточнения'
-                ? 'Ответ на запрос уточнения'
-                : 'Новый комментарий'
-            }
+        {!readOnly && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              run(async () => {
+                await addComment(id, comment, userId);
+                setComment('');
+              }, 'Комментарий сохранён');
+            }}
           >
-            <textarea
-              rows={3}
-              placeholder="Добавьте информацию по обращению…"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              required
-              maxLength={6000}
-            />
-          </Field>
-          <button disabled={busy || !comment.trim()} className="primary">
-            <Send size={15} />
-            Отправить
-          </button>
-        </form>
+            <Field
+              label={
+                author && t.status === 'Ожидает уточнения'
+                  ? 'Ответ на запрос уточнения'
+                  : 'Новый комментарий'
+              }
+            >
+              <textarea
+                rows={3}
+                placeholder="Добавьте информацию по обращению…"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                required
+                maxLength={6000}
+              />
+            </Field>
+            <button disabled={busy || !comment.trim()} className="primary">
+              <Send size={15} />
+              Отправить
+            </button>
+          </form>
+        )}
       </div>
     </Panel>
   );

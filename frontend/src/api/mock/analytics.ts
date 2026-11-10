@@ -6,10 +6,11 @@ import { db, pause, clone, user, canRead } from './storage';
 
 function cohort(days: number, userId: string): Ticket[] {
   const actor = user(userId);
-  if (actor.role !== 'Руководитель') throw new Error('Аналитика доступна руководителю');
+  if (!['Руководитель', 'Администратор'].includes(actor.role))
+    throw new Error('Аналитика доступна руководителю и администратору');
   return db.tickets.filter(
     (ticket) =>
-      (actor.canViewCompanyAnalytics || canRead(actor, ticket)) &&
+      (actor.role === 'Администратор' || actor.canViewCompanyAnalytics || canRead(actor, ticket)) &&
       (!days || Date.now() - Date.parse(ticket.createdAt) <= days * 86400000),
   );
 }
@@ -77,7 +78,7 @@ export async function getAnalytics(days: number, userId: string): Promise<Analyt
     total: tickets.length,
     openCount: tickets.filter((t) => !terminal(t)).length,
     overdueCount: tickets.filter(overdue).length,
-    companyScope: !!user(userId).canViewCompanyAnalytics,
+    companyScope: user(userId).role === 'Администратор' || !!user(userId).canViewCompanyAnalytics,
     considered: percent(hours.length),
     medianHours: hours.length
       ? (hours[Math.floor((hours.length - 1) / 2)] + hours[Math.floor(hours.length / 2)]) / 2

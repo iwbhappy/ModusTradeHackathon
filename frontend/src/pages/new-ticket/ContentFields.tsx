@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { Clock3 } from 'lucide-react';
 import { Field } from '../../components/ui';
 import { useApp } from '../../store';
@@ -13,11 +13,15 @@ export function ContentFields({
   setDraft,
   busy,
   setBusy,
+  recipient,
+  onDepartmentChange,
 }: {
   draft: TicketDraft;
   setDraft: Dispatch<SetStateAction<TicketDraft>>;
   busy: boolean;
   setBusy: (busy: boolean) => void;
+  recipient: ReactNode;
+  onDepartmentChange: (department: string) => void;
 }) {
   const { catalog, notify } = useApp();
   if (!catalog) return null;
@@ -51,7 +55,7 @@ export function ContentFields({
         <Field label="К какому подразделению относится *">
           <select
             value={draft.targetDepartment}
-            onChange={(e) => change('targetDepartment', e.target.value)}
+            onChange={(e) => onDepartmentChange(e.target.value)}
           >
             {catalog.departments.map((department) => (
               <option key={department}>{department}</option>
@@ -59,6 +63,7 @@ export function ContentFields({
           </select>
         </Field>
       </div>
+      {recipient}
       <Field
         label="Кратко о сути"
         hint={`${draft.title.length}/80 · Необязательно: можно оставить пустым`}

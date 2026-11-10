@@ -87,8 +87,8 @@ def create_cluster(
     db: Session, user: m.User, title: str, ticket_ids: list[str]
 ) -> m.Cluster:
     """Оформляет группу обращений как новую повторяющуюся проблему."""
-    if not user.can_view_company_analytics:
-        raise DomainError("Новый кластер оформляет руководитель направления", 403)
+    if user.role != "Администратор" and not user.can_view_company_analytics:
+        raise DomainError("Новый кластер оформляет руководитель направления или администратор", 403)
     title = title.strip()
     if len(title) < 5:
         raise DomainError("Укажите название проблемы: минимум 5 символов", 422)

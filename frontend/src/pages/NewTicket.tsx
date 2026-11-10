@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send } from 'lucide-react';
 import { createTicket, previewRouting } from '../api';
@@ -7,6 +7,7 @@ import type { RoutePreview, TicketDraft } from '../types';
 import { ErrorMessage, Loading, PageTitle } from '../components/ui';
 import { ContentFields } from './new-ticket/ContentFields';
 import { RoutingPreview } from './new-ticket/RoutingPreview';
+import { RecipientField } from './new-ticket/RecipientField';
 import { SimilarTickets } from './new-ticket/SimilarTickets';
 
 export function NewTicket() {
@@ -25,17 +26,39 @@ export function NewTicket() {
     minutes: 30,
     attachments: [],
   });
-  const [route, setRoute] = useState<RoutePreview | null>(null);
+  const [routeState, setRoute] = useState<{ key: string; value: RoutePreview } | null>(null);
+  const departmentManual = useRef(false);
+  const [departmentPending, setDepartmentPending] = useState(true);
   const [routeError, setRouteError] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  useEffect(() => {
+    if (departmentManual.current) return;
+    let live = true;
+    setDepartmentPending(true);
+    previewRouting(draft.category, '')
+      .then((route) => {
+        if (live && !departmentManual.current)
+          setDraft((previous) => ({ ...previous, targetDepartment: route.primary.department }));
+      })
+      .catch((error) => {
+        if (live && !departmentManual.current) setRouteError(error.message);
+      })
+      .finally(() => {
+        if (live) setDepartmentPending(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [draft.category]);
   useEffect(() => {
     let live = true;
     setRoute(null);
     setRouteError('');
     previewRouting(draft.category, draft.targetDepartment)
       .then((route) => {
-        if (live) setRoute(route);
+        if (live)
+          setRoute({ key: JSON.stringify([draft.category, draft.targetDepartment]), value: route });
       })
       .catch((error) => {
         if (live) setRouteError(error.message);
@@ -44,6 +67,21 @@ export function NewTicket() {
       live = false;
     };
   }, [draft.category, draft.targetDepartment]);
+  const selected = catalog!.users.find((user) => user.id === draft.assigneeId);
+  const currentRoute =
+    !departmentPending &&
+    routeState?.key === JSON.stringify([draft.category, draft.targetDepartment])
+      ? routeState.value
+      : null;
+  const route =
+    currentRoute && (!draft.assigneeId || selected)
+      ? {
+          ...currentRoute,
+          assignee: selected || currentRoute.assignee,
+          fallback: !selected && currentRoute.fallback,
+          reason: selected ? 'Получатель выбран автором' : currentRoute.reason,
+        }
+      : null;
   return (
     <>
       <Link to="/mine" className="back-link">
@@ -64,7 +102,17 @@ export function NewTicket() {
             try {
               const ticket = await createTicket(draft, userId);
               await refresh();
-              notify(`${ticket.id}: обращение зарегистрировано`);
+              const receiver = catalog!.users.find((user) => user.id === ticket.assigneeId);
+              notify(
+                `${ticket.id}: обращение зарегистрировано. Обращение получил: ${receiver?.name || ticket.assigneeId}`,
+                catalog!.demoMode && receiver
+                  ? {
+                      label: `Открыть как ${receiver.name}`,
+                      userId: receiver.id,
+                      ticketId: ticket.id,
+                    }
+                  : undefined,
+              );
               navigate(`/tickets/${ticket.id}`);
             } catch (error) {
               setError((error as Error).message);
@@ -78,7 +126,29 @@ export function NewTicket() {
             <span className="quiet-label">Обязательные поля отмечены *</span>
           </div>
           <div className="panel-body">
-            <ContentFields draft={draft} setDraft={setDraft} busy={busy} setBusy={setBusy} />
+            <ContentFields
+              draft={draft}
+              setDraft={setDraft}
+              busy={busy}
+              setBusy={setBusy}
+              onDepartmentChange={(targetDepartment) => {
+                departmentManual.current = true;
+                setDepartmentPending(false);
+                setDraft((previous) => ({ ...previous, targetDepartment }));
+              }}
+              recipient={
+                <RecipientField
+                  route={route}
+                  error={routeError}
+                  users={catalog!.users}
+                  selectedId={draft.assigneeId}
+                  busy={busy}
+                  onSelect={(assigneeId) =>
+                    setDraft((previous) => ({ ...previous, assigneeId: assigneeId || undefined }))
+                  }
+                />
+              }
+            />
             <ErrorMessage text={routeError} />
             {route ? <RoutingPreview route={route} /> : !routeError && <Loading />}
             <ErrorMessage text={error} />
@@ -88,7 +158,7 @@ export function NewTicket() {
               </Link>
               <button
                 className="primary"
-                disabled={busy || !route || draft.text.trim().length < 20}
+                disabled={busy || !route || !!selected?.vacation || draft.text.trim().length < 20}
               >
                 <Send size={16} />
                 {busy ? 'Сохранение…' : 'Отправить обращение'}

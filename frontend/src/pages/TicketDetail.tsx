@@ -7,17 +7,19 @@ import { Metadata } from './ticket-detail/Metadata';
 import { TicketActions } from './ticket-detail/TicketActions';
 import { RelatedTickets } from './ticket-detail/RelatedTickets';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Paperclip } from 'lucide-react';
 import { downloadAttachment, getTicket, listTickets } from '../api';
 import { useApp } from '../store';
 import type { Ticket } from '../types';
 import { terminal } from '../lib/format';
+import { canManage, canComment } from '../lib/permissions';
 import { Badge, ErrorMessage, Loading, PageTitle, Panel } from '../components/ui';
 
 export function TicketDetail() {
   const { id = '' } = useParams();
-  const { catalog, userId, revision, refresh, notify } = useApp();
+  const { catalog, userId, revision, refresh, notify, selectUser } = useApp();
+  const navigate = useNavigate();
   const [t, setTicket] = useState<Ticket | null>(null);
   const [related, setRelated] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +54,7 @@ export function TicketDetail() {
   if (!catalog) return null;
   const current = catalog.users.find((u) => u.id === userId)!;
   const home =
-    current.role === 'Сотрудник'
-      ? '/mine'
-      : current.role === 'Руководитель'
-        ? '/inbox'
-        : '/routing';
+    current.role === 'Сотрудник' ? '/mine' : current.role === 'Руководитель' ? '/inbox' : '/all';
   if (loading && (!t || t.id !== id)) return <Loading />;
   if (!t)
     return (
@@ -69,6 +67,8 @@ export function TicketDetail() {
       </>
     );
   const manager = current.role === 'Руководитель';
+  const manages = canManage(current, t, catalog.users);
+  const receiver = catalog.users.find((u) => u.id === t.assigneeId)!;
   const run = async (operation: () => Promise<unknown>, message: string) => {
     setBusy(true);
     setError('');
@@ -86,13 +86,41 @@ export function TicketDetail() {
     <>
       <Link to={home} className="back-link">
         <ArrowLeft size={15} />
-        {manager ? 'Входящие' : 'Мои обращения'}
+        {current.role === 'Администратор'
+          ? 'Все обращения'
+          : manager
+            ? 'Входящие'
+            : 'Мои обращения'}
       </Link>
       <PageTitle
         title={t.title}
         subtitle={`${t.id} · ${t.type} · ${t.category}`}
         action={<Badge status={t.status} />}
       />
+      <div className="info-strip">
+        <div>
+          <strong>Обращение получил: {receiver.name}</strong>
+          <p>
+            {receiver.role} · {receiver.department}
+          </p>
+          {catalog.demoMode && receiver.id !== userId && (
+            <button
+              className="text-button"
+              disabled={busy}
+              onClick={async () => {
+                try {
+                  await selectUser(receiver.id);
+                  navigate(`/tickets/${t.id}`);
+                } catch (error) {
+                  notify((error as Error).message);
+                }
+              }}
+            >
+              Открыть как {receiver.name}
+            </button>
+          )}
+        </div>
+      </div>
       <Tracking t={t} />
       <ErrorMessage text={error} />
       <div className="detail-layout">
@@ -144,13 +172,20 @@ export function TicketDetail() {
               )}
             </div>
           </Panel>
-          <Discussion t={t} run={run} busy={busy} />
+          <Discussion
+            t={t}
+            run={run}
+            busy={busy}
+            readOnly={!canComment(current, t, catalog.users)}
+          />
           {t.participants.length > 0 && <Participants t={t} />}
           <History t={t} />
         </div>
         <aside className="detail-aside">
           <Metadata t={t} />
-          {manager && !terminal(t) && <TicketActions t={t} run={run} busy={busy} />}
+          {(manages || current.role === 'Администратор') && !terminal(t) && (
+            <TicketActions t={t} run={run} busy={busy} canDecide={manages} />
+          )}
           {t.clusterId && <RelatedTickets t={t} related={related} manager={manager} />}
         </aside>
       </div>

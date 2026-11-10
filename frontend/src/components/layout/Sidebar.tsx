@@ -54,6 +54,14 @@ export function Sidebar({ home, onReset }: { home: string; onReset: () => void }
         )}
         {current.role === 'Администратор' && (
           <>
+            <NavLink to="/all">
+              <Inbox />
+              Все обращения
+            </NavLink>
+            <NavLink to="/analytics">
+              <ChartNoAxesCombined />
+              Аналитика
+            </NavLink>
             <NavLink to="/routing">
               <Settings2 />
               Маршрутизация

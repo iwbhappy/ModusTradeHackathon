@@ -105,6 +105,7 @@ export interface Cluster {
   keywords: string[];
 }
 export interface TicketDraft {
+  assigneeId?: string;
   attachmentIds?: string[];
   title: string;
   type: TicketType;
@@ -238,6 +239,7 @@ export interface AnalyticsFilters {
   type?: string;
 }
 export interface Catalog {
+  demoMode?: boolean;
   transitions?: Record<string, Status[]>;
   users: User[];
   rules: Rule[];
