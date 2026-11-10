@@ -19,3 +19,4 @@ backend/.env
 .uv-cache/
 .uv-tools/
 backend/.ruff_cache/
+backend/models/

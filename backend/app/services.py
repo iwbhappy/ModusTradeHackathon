@@ -193,11 +193,10 @@ def create_ticket(db: Session, user: m.User, draft: TicketDraft) -> m.Ticket:
         selected.user.id,
     )
     audit(db, ticket, user, "Обращение зарегистрировано", "status", None, "Новое")
-    from .ai.provider import RuleBasedProvider
+    from .ai.clusters import assign_cluster
 
-    cluster_id = RuleBasedProvider().detect_cluster(db, draft.text)
-    if cluster_id:
-        db.add(m.TicketCluster(ticket_id=ticket.id, cluster_id=cluster_id))
+    db.flush()
+    assign_cluster(db, ticket)
     notify(db, selected.user.id, ticket, f"Новое обращение {ticket.id}: {ticket.title}")
     return ticket
 

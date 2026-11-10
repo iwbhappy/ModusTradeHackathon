@@ -64,8 +64,35 @@ def stem(word: str) -> str:
     )
 
 
+OPEN_LIMIT, CLOSED_LIMIT = 3, 2
+
+
+def outcome(status: str) -> str:
+    """Чем закончилось обращение: от этого зависит, что предложить автору."""
+    if status == "Отклонено":
+        return "rejected"
+    return "done" if status in {"Реализовано", "Закрыто"} else "open"
+
+
+def shortlist(scored: list[dict]) -> list[dict]:
+    """Лучшие открытые (к ним можно присоединиться) и лучшие уже рассмотренные."""
+    ranked = sorted(scored, key=lambda t: (-t["score"], t["id"]))
+    opened = [t for t in ranked if t["outcome"] == "open"][:OPEN_LIMIT]
+    closed = [t for t in ranked if t["outcome"] != "open"][:CLOSED_LIMIT]
+    return sorted(opened + closed, key=lambda t: (-t["score"], t["id"]))
+
+
 class RuleBasedProvider:
+    """Детерминированный запасной вариант: работает без моделей и сети."""
+
+    mode = "rules"
+
     def similar(
+        self, text: str, category: str, department: str, candidates: list[dict]
+    ) -> list[dict]:
+        return shortlist(self.lexical(text, category, department, candidates))
+
+    def lexical(
         self, text: str, category: str, department: str, candidates: list[dict]
     ) -> list[dict]:
         terms = set(map(stem, words(text)))
@@ -83,11 +110,7 @@ class RuleBasedProvider:
         scored = []
         for ticket, title, body in docs:
             matches = terms & (title | body)
-            if len(matches) < 2 or ticket["status"] in {
-                "Реализовано",
-                "Отклонено",
-                "Закрыто",
-            }:
+            if len(matches) < 2:
                 continue
             score = sum(
                 idf[w] * (3 * (w in title) + (w in body)) for w in matches
@@ -107,10 +130,11 @@ class RuleBasedProvider:
                 {
                     "id": ticket["id"],
                     "score": score,
+                    "outcome": outcome(ticket["status"]),
                     "matchExplanation": "Совпадение: " + ", ".join(explanations),
                 }
             )
-        return sorted(scored, key=lambda t: (-t["score"], t["id"]))[:4]
+        return scored
 
     def detect_cluster(self, db: Session, text: str) -> str:
         clusters = db.scalars(select(Cluster)).all()
@@ -173,4 +197,51 @@ class RuleBasedProvider:
         return f"Обращение «{text}» принято в работу. Проверим ситуацию и зафиксируем результат в карточке."
 
 
-provider: AIProvider = RuleBasedProvider()
+class SemanticProvider(RuleBasedProvider):
+    """Поиск похожих по смыслу: локальные эмбеддинги + лексическое объяснение.
+
+    Кандидаты приходят с ключом `vector` (нормированный вектор обращения). Близость
+    считается косинусом, поэтому находятся и перефразировки без общих слов.
+    Совпавшие слова остаются в объяснении, чтобы результат был проверяемым.
+    """
+
+    mode = "semantic"
+
+    def similar(
+        self, text: str, category: str, department: str, candidates: list[dict]
+    ) -> list[dict]:
+        from ..config import settings
+        from .embeddings import embedder
+
+        vectors = [c for c in candidates if c.get("vector") is not None]
+        if not embedder.ready or not vectors:
+            return super().similar(text, category, department, candidates)
+        query = embedder.encode([text])[0]
+        words_by_id = {
+            item["id"]: item["matchExplanation"].removeprefix("Совпадение: ")
+            for item in self.lexical(text, category, department, candidates)
+        }
+        threshold = settings().similar_threshold
+        scored = []
+        for ticket in vectors:
+            closeness = float(query @ ticket["vector"])
+            if closeness < threshold:
+                continue
+            shared = words_by_id.get(ticket["id"])
+            explanation = f"Близость по смыслу {round(closeness * 100)}%"
+            if shared:
+                explanation += f" · общие слова: {shared}"
+            scored.append(
+                {
+                    "id": ticket["id"],
+                    "score": closeness
+                    + 0.04 * (category == ticket["category"])
+                    + 0.03 * (department == ticket["targetDepartment"]),
+                    "outcome": outcome(ticket["status"]),
+                    "matchExplanation": explanation,
+                }
+            )
+        return shortlist(scored)
+
+
+provider: AIProvider = SemanticProvider()

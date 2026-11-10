@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     sla_interval_seconds: int = 60
     storage_directory: Path = Path("storage")
     seed_path: Path = ROOT / "data" / "seed.json"
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    model_directory: Path = Path("models")
+    similar_threshold: float = 0.5
+    cluster_threshold: float = 0.55
     holidays_path: Path = Path(__file__).with_name("holidays.json")
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 

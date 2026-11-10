@@ -1,9 +1,11 @@
 import type {
   Analytics,
+  AiStatus,
   AnalyticsFilters,
   AppNotification,
   AttachmentInfo,
   Catalog,
+  EmergingGroup,
   Frequency,
   RoutePreview,
   Rule,
@@ -57,6 +59,11 @@ export const setVacation = (id: string, vacation: boolean, userId: string) =>
   );
 export const findSimilar = (text: string, userId: string, context: SimilarityContext = {}) =>
   post<SimilarTicket[]>('/ai/similar', { text, ...context }, userId);
+export const getAiStatus = () => request<AiStatus>('/ai/status');
+export const getEmerging = (userId: string) =>
+  request<EmergingGroup[]>('/analytics/emerging?days=90', {}, userId);
+export const createCluster = (title: string, ticketIds: string[], userId: string) =>
+  post<{ id: string; title: string }>('/analytics/clusters', { title, ticketIds }, userId);
 export const suggestStructure = (text: string) => post<Structure>('/ai/structure', { text });
 export const draftResponse = async (id: string, status: Status, userId: string) =>
   (await post<{ text: string }>(`/tickets/${id}/draft-response`, { status }, userId)).text;

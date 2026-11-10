@@ -1,7 +1,14 @@
 import { categoryAliases, detectCluster } from '../../data/seed';
 import { terminal } from '../../lib/format';
 import { makeTitle } from '../../lib/title';
-import type { SimilarityContext, SimilarTicket, Status, Structure } from '../../types';
+import type {
+  AiStatus,
+  EmergingGroup,
+  SimilarityContext,
+  SimilarTicket,
+  Status,
+  Structure,
+} from '../../types';
 import { db, pause, clone, user, ticket, assertManager } from './storage';
 import { scoreSimilar } from './search-scoring';
 
@@ -18,7 +25,12 @@ export async function findSimilar(
       .filter((item) => !terminal(item.ticket) && item.matches >= 2)
       .sort((a, b) => b.score - a.score || a.ticket.id.localeCompare(b.ticket.id))
       .slice(0, 4)
-      .map((item) => ({ ...item.ticket, matchExplanation: item.explanation })),
+      .map((item) => ({
+        ...item.ticket,
+        matchExplanation: item.explanation,
+        outcome: 'open' as const,
+        outcomeText: '',
+      })),
   );
 }
 export async function suggestStructure(text: string): Promise<Structure> {
@@ -59,4 +71,20 @@ export async function draftResponse(id: string, status: Status, userId: string) 
         ? `По обращению «${t.title}» согласован единый порядок работы, ` +
           'назначен владелец процесса и опубликована памятка. Просим проверить результат в вашей работе.'
         : `Спасибо за обращение «${t.title}». Приняли в работу. Проверим описанную ситуацию и зафиксируем результат в этой карточке.`;
+}
+
+// Смысловой поиск и группировка работают только на сервере: статическое демо
+// честно сообщает, что используется поиск по ключевым словам.
+export async function getAiStatus(): Promise<AiStatus> {
+  return { search: 'rules', model: '', local: true };
+}
+export async function getEmerging(_userId: string): Promise<EmergingGroup[]> {
+  return [];
+}
+export async function createCluster(
+  _title: string,
+  _ticketIds: string[],
+  _userId: string,
+): Promise<{ id: string; title: string }> {
+  throw new Error('Оформление кластера доступно в HTTP-режиме');
 }

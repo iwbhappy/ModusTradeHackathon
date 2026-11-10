@@ -14,6 +14,8 @@ from .domain.permissions import require_ticket, visible_clause
 from .domain.workflow import TERMINAL
 from .presenters import attachment_view, catalog_view, iso, ticket_view, user_view
 from .storage import storage
+from .ai.clusters import create_cluster, emerging
+from .ai.embeddings import embedder, load_vectors, sync_embeddings
 from .ai.provider import provider
 
 router = APIRouter(prefix="/api")
@@ -280,7 +282,9 @@ def vacation(user_id: str, data: s.VacationInput, db: Database, user: Admin):
 def reset(db: Database, user: Admin):
     from .seed import load_seed
 
-    return {"count": load_seed(db, reset=True)}
+    count = load_seed(db, reset=True)
+    sync_embeddings(db)
+    return {"count": count}
 
 
 @router.post("/admin/run-sla-check")
@@ -385,6 +389,7 @@ def similar(data: s.SimilarInput, db: Database, user: CurrentUser):
         raise DomainError("Администратору недоступен поиск по содержимому", 403)
     categories = {c.id: c.name for c in db.scalars(select(m.Category))}
     departments = {d.id: d.name for d in db.scalars(select(m.Department))}
+    vectors = load_vectors(db)
     candidates = [
         {
             "id": t.id,
@@ -393,19 +398,38 @@ def similar(data: s.SimilarInput, db: Database, user: CurrentUser):
             "status": t.status,
             "category": categories[t.category_id],
             "targetDepartment": departments[t.target_department_id],
+            "vector": vectors.get(t.id),
         }
         for t in db.scalars(select(m.Ticket))
     ]
     matches = provider.similar(
         data.text, data.category, data.target_department, candidates
     )
-    return [
-        {
-            **ticket_view(db, db.get(m.Ticket, item["id"]), public=True),
-            "matchExplanation": item["matchExplanation"],
-        }
-        for item in matches
-    ]
+    result = []
+    for item in matches:
+        ticket = db.get(m.Ticket, item["id"])
+        result.append(
+            {
+                **ticket_view(db, ticket, public=True),
+                "matchExplanation": item["matchExplanation"],
+                "outcome": item["outcome"],
+                # Итог рассмотрения виден всем: он объясняет, нужно ли новое обращение.
+                "outcomeText": ticket.rejection
+                if item["outcome"] == "rejected"
+                else ticket.changed,
+            }
+        )
+    return result
+
+
+@router.get("/ai/status")
+def ai_status(user: CurrentUser):
+    """Какой режим AI сейчас активен — интерфейс подписывает подсказки честно."""
+    return {
+        "search": "semantic" if embedder.ready else "rules",
+        "model": embedder.name if embedder.ready else "",
+        "local": True,
+    }
 
 
 @router.post("/ai/structure")
@@ -450,6 +474,19 @@ def get_analytics(
     db: Database, user: CurrentUser, days: int = Query(90, ge=0, le=3650)
 ):
     return analytics.summary(db, user, days)
+
+
+@router.get("/analytics/emerging")
+def analytics_emerging(
+    db: Database, user: CurrentUser, days: int = Query(60, ge=7, le=365)
+):
+    return emerging(db, user, days)
+
+
+@router.post("/analytics/clusters", status_code=201)
+def analytics_create_cluster(data: s.ClusterInput, db: Database, user: CurrentUser):
+    cluster = create_cluster(db, user, data.title, data.ticket_ids)
+    return {"id": cluster.id, "title": cluster.title}
 
 
 @router.get("/analytics/tickets")

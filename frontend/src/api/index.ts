@@ -34,6 +34,12 @@ export const setVacation: typeof Http.setVacation = (...args) =>
   adapter.then((api) => api.setVacation(...args));
 export const findSimilar: typeof Http.findSimilar = (...args) =>
   adapter.then((api) => api.findSimilar(...args));
+export const getAiStatus: typeof Http.getAiStatus = (...args) =>
+  adapter.then((api) => api.getAiStatus(...args));
+export const getEmerging: typeof Http.getEmerging = (...args) =>
+  adapter.then((api) => api.getEmerging(...args));
+export const createCluster: typeof Http.createCluster = (...args) =>
+  adapter.then((api) => api.createCluster(...args));
 export const suggestStructure: typeof Http.suggestStructure = (...args) =>
   adapter.then((api) => api.suggestStructure(...args));
 export const draftResponse: typeof Http.draftResponse = (...args) =>

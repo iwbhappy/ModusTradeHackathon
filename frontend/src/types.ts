@@ -113,8 +113,25 @@ export interface Structure {
   category: string;
   priority: Priority;
 }
+export type SimilarOutcome = 'open' | 'done' | 'rejected';
 export interface SimilarTicket extends Ticket {
   matchExplanation: string;
+  /** Чем закончилось похожее обращение: к открытому можно присоединиться. */
+  outcome: SimilarOutcome;
+  /** Что изменилось или почему отклонено — для уже рассмотренных. */
+  outcomeText: string;
+}
+export interface AiStatus {
+  search: 'semantic' | 'rules';
+  model: string;
+  local: boolean;
+}
+export interface EmergingGroup {
+  tickets: { id: string; title: string }[];
+  departments: string[];
+  monthlyCost: number;
+  firstSeen: string;
+  suggestedTitle: string;
 }
 
 export interface SimilarityContext {

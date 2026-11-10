@@ -6505,6 +6505,147 @@
       "originalCategory": "Информационная прозрачность",
       "escalated": false,
       "defaultConfirmed": false
+    },
+    {
+      "id": "S-041",
+      "title": "Пропуск на объект заказчика узнаём в день выезда",
+      "text": "Приезжаем на объект, а пропуска на бригаду не заказаны: охрана не пускает, ждём по два-три часа, пока менеджер дозвонится до заказчика. За месяц так сорвалось два выезда.",
+      "type": "Проблема",
+      "category": "Проекты и ресурсы",
+      "authorId": "specialist-5",
+      "authorDepartment": "Сервис и ПНР",
+      "targetDepartment": "Продажи",
+      "assigneeId": "manager-10",
+      "priority": "Высокий",
+      "status": "Новое",
+      "createdAt": {
+        "offsetDays": -0.3333
+      },
+      "responseDueAt": {
+        "offsetDays": 2.6667
+      },
+      "dueAt": {
+        "offsetDays": 9.6667
+      },
+      "events": [
+        {
+          "id": "S-041-created",
+          "date": {
+            "offsetDays": -0.3333
+          },
+          "actor": "Инженер ПНР",
+          "text": "Обращение зарегистрировано",
+          "status": "Новое"
+        }
+      ],
+      "comments": [],
+      "participants": [],
+      "frequency": "еженедельно",
+      "minutes": 150,
+      "solution": "",
+      "effect": "",
+      "changed": "",
+      "rejection": "",
+      "confirmed": false,
+      "attachments": [],
+      "clusterId": "",
+      "originalCategory": "Проектная деятельность",
+      "escalated": false,
+      "defaultConfirmed": false
+    },
+    {
+      "id": "S-042",
+      "title": "Списки на допуск монтажников подаются в последний момент",
+      "text": "Заказчики требуют список людей и автомобилей для допуска за три рабочих дня. Состав бригады мы узнаём накануне, поэтому заявку на допуск подаём с опозданием и переносим начало работ.",
+      "type": "Проблема",
+      "category": "Проекты и ресурсы",
+      "authorId": "employee-5",
+      "authorDepartment": "Проектирование",
+      "targetDepartment": "Сервис и ПНР",
+      "assigneeId": "head-5",
+      "priority": "Средний",
+      "status": "Новое",
+      "createdAt": {
+        "offsetDays": -1.3333
+      },
+      "responseDueAt": {
+        "offsetDays": 1.6667
+      },
+      "dueAt": {
+        "offsetDays": 8.6667
+      },
+      "events": [
+        {
+          "id": "S-042-created",
+          "date": {
+            "offsetDays": -1.3333
+          },
+          "actor": "Координатор проекта",
+          "text": "Обращение зарегистрировано",
+          "status": "Новое"
+        }
+      ],
+      "comments": [],
+      "participants": [],
+      "frequency": "ежемесячно",
+      "minutes": 180,
+      "solution": "",
+      "effect": "",
+      "changed": "",
+      "rejection": "",
+      "confirmed": false,
+      "attachments": [],
+      "clusterId": "",
+      "originalCategory": "Проектная деятельность",
+      "escalated": false,
+      "defaultConfirmed": false
+    },
+    {
+      "id": "S-043",
+      "title": "Требования заказчика к допуску не доходят до бригады",
+      "text": "На режимных объектах нужны паспортные данные, вводный инструктаж и группа по электробезопасности. Я узнаю об этом при согласовании договора, но до выездной бригады требования доходят уже у проходной.",
+      "type": "Проблема",
+      "category": "Проекты и ресурсы",
+      "authorId": "specialist-0",
+      "authorDepartment": "Продажи",
+      "targetDepartment": "Сервис и ПНР",
+      "assigneeId": "head-5",
+      "priority": "Средний",
+      "status": "Новое",
+      "createdAt": {
+        "offsetDays": -4.3333
+      },
+      "responseDueAt": {
+        "offsetDays": 0.6666999999999996
+      },
+      "dueAt": {
+        "offsetDays": 9.666699999999999
+      },
+      "events": [
+        {
+          "id": "S-043-created",
+          "date": {
+            "offsetDays": -4.3333
+          },
+          "actor": "Менеджер по продажам 2",
+          "text": "Обращение зарегистрировано",
+          "status": "Новое"
+        }
+      ],
+      "comments": [],
+      "participants": [],
+      "frequency": "ежемесячно",
+      "minutes": 120,
+      "solution": "",
+      "effect": "",
+      "changed": "",
+      "rejection": "",
+      "confirmed": false,
+      "attachments": [],
+      "clusterId": "",
+      "originalCategory": "Проектная деятельность",
+      "escalated": false,
+      "defaultConfirmed": false
     }
   ]
 }

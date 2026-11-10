@@ -73,3 +73,8 @@ class SimilarInput(Input):
     text: str = Field(max_length=6000)
     category: str = ""
     target_department: str = ""
+
+
+class ClusterInput(Input):
+    title: str = Field(max_length=200)
+    ticket_ids: list[str] = Field(min_length=2, max_length=50)

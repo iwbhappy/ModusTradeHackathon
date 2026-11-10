@@ -19,16 +19,30 @@ logging.basicConfig(
 )
 
 
+def warm_up_embeddings() -> None:
+    """Загружает модель и досчитывает векторы; при неудаче остаётся режим правил."""
+    from .ai.embeddings import sync_embeddings
+    from .db import SessionLocal
+
+    with SessionLocal() as db:
+        count = sync_embeddings(db)
+        db.commit()
+    if count:
+        logging.getLogger("signal.ai").info("Посчитано векторов обращений: %s", count)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(scheduler(settings().sla_interval_seconds))
+    # Модель грузится в фоне, чтобы API отвечал сразу после старта.
+    asyncio.get_running_loop().run_in_executor(None, warm_up_embeddings)
     yield
     task.cancel()
     with suppress(asyncio.CancelledError):
         await task
 
 
-app = FastAPI(title="Сигнал · API", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="Сигнал · API", version="0.3.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings().cors_origins,

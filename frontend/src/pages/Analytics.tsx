@@ -1,5 +1,6 @@
 import { SlaPanel } from './analytics/SlaPanel';
 import { ClustersTable } from './analytics/ClustersTable';
+import { EmergingProblems } from './analytics/EmergingProblems';
 import { FrictionMatrix } from './analytics/FrictionMatrix';
 import { Kpis } from './analytics/Kpis';
 import { Drilldown } from './analytics/Drilldown';
@@ -18,6 +19,7 @@ export function AnalyticsPage() {
   const { userId, catalog, selectUser } = useApp();
   const [params, setParams] = useSearchParams();
   const [days, setDays] = useState(90);
+  const [version, setVersion] = useState(0);
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,7 +51,7 @@ export function AnalyticsPage() {
     return () => {
       live = false;
     };
-  }, [days, userId, params]);
+  }, [days, userId, params, version]);
   if (!data && loading) return <Loading />;
   if (!data) return <ErrorMessage text={error} />;
   const show = async (title: string, filters: AnalyticsFilters) => {
@@ -137,6 +139,10 @@ export function AnalyticsPage() {
         <Distribution title="По статусам" data={data.distributions.status} />
         <Distribution title="По категориям" data={data.distributions.category} limit={7} />
       </div>
+      <EmergingProblems
+        canCreate={data.companyScope}
+        onCreated={() => setVersion((value) => value + 1)}
+      />
       <ClustersTable data={data} show={show} />
       <FrictionMatrix data={data} show={show} />
       <div className="analytics-note">

@@ -7,6 +7,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -188,3 +189,15 @@ class TicketCluster(Base):
         ForeignKey("tickets.id", ondelete="CASCADE"), primary_key=True
     )
     cluster_id: Mapped[str] = mapped_column(ForeignKey("clusters.id"), primary_key=True)
+
+
+class TicketEmbedding(Base):
+    """Вектор смысла обращения для поиска похожих и группировки."""
+
+    __tablename__ = "ticket_embeddings"
+    ticket_id: Mapped[str] = mapped_column(
+        ForeignKey("tickets.id", ondelete="CASCADE"), primary_key=True
+    )
+    model: Mapped[str] = mapped_column(String(200))
+    text_hash: Mapped[str] = mapped_column(String(64))
+    vector: Mapped[bytes] = mapped_column(LargeBinary)

@@ -2,7 +2,14 @@ export { getCatalog, resetDemo } from './storage';
 export * from './tickets';
 export { getAnalytics, getAnalyticsTickets } from './analytics';
 export { previewRouting, saveRule, setVacation } from './routing';
-export { findSimilar, suggestStructure, draftResponse } from './ai';
+export {
+  findSimilar,
+  suggestStructure,
+  draftResponse,
+  getAiStatus,
+  getEmerging,
+  createCluster,
+} from './ai';
 export {
   demoLogin,
   listNotifications,
