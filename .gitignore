@@ -7,3 +7,4 @@ frontend/.npm-cache/
 frontend/.dev-*.log
 *.docx
 .claude/settings.local.json
+.npm-cache/
