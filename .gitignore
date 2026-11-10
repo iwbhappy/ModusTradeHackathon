@@ -9,3 +9,13 @@ frontend/.manual-preview/
 *.docx
 .claude/settings.local.json
 .npm-cache/
+backend/.venv/
+backend/*.db
+backend/storage/
+backend/.pytest_cache/
+backend/pytest-cache-files-*/
+**/__pycache__/
+backend/.env
+.uv-cache/
+.uv-tools/
+backend/.ruff_cache/

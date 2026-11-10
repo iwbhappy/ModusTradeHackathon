@@ -90,6 +90,8 @@ export function Improvements() {
                   </span>
                   {t.confirmed ? (
                     <Badge status="Подтверждено автором" />
+                  ) : t.defaultConfirmed ? (
+                    <span className="quiet-label">Подтверждено по умолчанию</span>
                   ) : (
                     <span className="quiet-label">Ожидает проверки автором</span>
                   )}

@@ -44,6 +44,7 @@ export function TicketsTable({
               </td>
               <td>
                 <Badge status={t.status} />
+                {t.escalated && <span className="badge attention">Эскалировано</span>}
               </td>
               <td className="person-cell">{users.find((u) => u.id === t.assigneeId)?.name}</td>
               <td>

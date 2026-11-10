@@ -8,6 +8,12 @@ export function Metadata({ t }: { t: Ticket }) {
   return (
     <Panel title="Сведения">
       <dl className="meta-list">
+        {t.escalated && (
+          <dd>
+            <span className="badge attention">Эскалировано</span>
+          </dd>
+        )}
+        {t.defaultConfirmed && <dd>Подтверждено по умолчанию</dd>}
         <dt>Автор</dt>
         <dd>{catalog!.users.find((u) => u.id === t.authorId)?.name}</dd>
         <dt>Подразделение автора</dt>

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Ticket } from '../../types';
+import { useEffect, useRef, useState } from 'react';
+import type { Analytics } from '../../types';
 import { date } from '../../lib/format';
 
-export function WeeklyChart({ tickets }: { tickets: Ticket[] }) {
+export function WeeklyChart({ data }: { data: Analytics['weekly'] }) {
   const container = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(700);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -13,30 +13,6 @@ export function WeeklyChart({ tickets }: { tickets: Ticket[] }) {
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const data = useMemo(() => {
-    const current = new Date();
-    current.setDate(current.getDate() - ((current.getDay() + 6) % 7));
-    current.setHours(0, 0, 0, 0);
-    return Array.from({ length: 10 }, (_, index) => {
-      const start = new Date(current);
-      start.setDate(start.getDate() - (9 - index) * 7);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 7);
-      return {
-        start,
-        incoming: tickets.filter(
-          (ticket) => new Date(ticket.createdAt) >= start && new Date(ticket.createdAt) < end,
-        ).length,
-        done: tickets.filter(
-          (ticket) =>
-            ticket.implementedAt &&
-            new Date(ticket.implementedAt) >= start &&
-            new Date(ticket.implementedAt) < end &&
-            ['Реализовано', 'Закрыто'].includes(ticket.status),
-        ).length,
-      };
-    });
-  }, [tickets]);
   const maximum = Math.max(3, ...data.flatMap((week) => [week.incoming, week.done]));
   const topTick = Math.ceil(maximum / 3) * 3;
   const plotWidth = Math.max(280, width) - 56;

@@ -7,15 +7,15 @@ import { Distribution } from './analytics/Distribution';
 import { WeeklyChart } from './analytics/WeeklyChart';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChartNoAxesCombined } from 'lucide-react';
-import { getAnalytics } from '../api';
+import { Building2, ChartNoAxesCombined, Download } from 'lucide-react';
+import { exportAnalytics, getAnalytics, getAnalyticsTickets, isMockMode } from '../api';
 import { useApp } from '../store';
-import type { Analytics, Ticket } from '../types';
+import type { Analytics, AnalyticsFilters, Ticket } from '../types';
 
 import { ErrorMessage, Loading, PageTitle, Panel } from '../components/ui';
 
 export function AnalyticsPage() {
-  const { userId } = useApp();
+  const { userId, catalog, selectUser } = useApp();
   const [params, setParams] = useSearchParams();
   const [days, setDays] = useState(90);
   const [data, setData] = useState<Analytics | null>(null);
@@ -26,15 +26,18 @@ export function AnalyticsPage() {
     let live = true;
     setLoading(true);
     getAnalytics(days, userId)
-      .then((result) => {
+      .then(async (result) => {
         if (live) {
           setData(result);
           const cluster = params.get('cluster');
-          if (cluster)
+          if (cluster) {
+            const tickets = await getAnalyticsTickets(days, { cluster }, userId);
+            if (!live) return;
             setDrill({
-              title: result.clusters.find((c) => c.id === cluster)?.title || 'Кластер',
-              tickets: result.tickets.filter((t) => t.clusterId === cluster),
+              title: result.clusterStats.find((c) => c.id === cluster)?.title || 'Кластер',
+              tickets,
             });
+          }
         }
       })
       .catch((e) => {
@@ -49,40 +52,65 @@ export function AnalyticsPage() {
   }, [days, userId, params]);
   if (!data && loading) return <Loading />;
   if (!data) return <ErrorMessage text={error} />;
-  const tickets = data.tickets;
-  const group = (key: 'type' | 'status' | 'category') =>
-    [...new Set(tickets.map((t) => t[key]))]
-      .map((label) => ({ label, value: tickets.filter((t) => t[key] === label).length }))
-      .sort((a, b) => b.value - a.value);
-  const show = (title: string, list: Ticket[]) => setDrill({ title, tickets: list });
+  const show = async (title: string, filters: AnalyticsFilters) => {
+    setError('');
+    try {
+      setDrill({ title, tickets: await getAnalyticsTickets(days, filters, userId) });
+    } catch (error) {
+      setError((error as Error).message);
+    }
+  };
+  const companyViewer = catalog?.users.find((u) => u.canViewCompanyAnalytics);
   return (
     <>
       <PageTitle
         title="Аналитика обращений"
-        subtitle="Повторяющиеся проблемы, потери времени и результат изменений · вся компания"
+        subtitle={`Повторяющиеся проблемы и результат изменений · ${data.companyScope ? 'вся компания' : 'ваше подразделение'}`}
         action={
-          <div className="segmented compact">
-            {[
-              [30, '30 дней'],
-              [90, '90 дней'],
-              [0, 'Всё время'],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                className={days === value ? 'selected' : ''}
-                onClick={() => {
-                  setDays(Number(value));
-                  setDrill(null);
-                }}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="button-row">
+            <button
+              disabled={isMockMode}
+              onClick={() =>
+                exportAnalytics(days, userId).catch((error) => setError(error.message))
+              }
+              title={isMockMode ? 'XLSX доступен в HTTP-режиме' : 'Выгрузить реестр за период'}
+            >
+              <Download size={15} />
+              Выгрузить в Excel
+            </button>
+            <div className="segmented compact">
+              {[
+                [30, '30 дней'],
+                [90, '90 дней'],
+                [0, 'Всё время'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  className={days === value ? 'selected' : ''}
+                  onClick={() => {
+                    setDays(Number(value));
+                    setDrill(null);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         }
       />
       <ErrorMessage text={error} />
       {loading && <Loading />}
+      {!data.companyScope && companyViewer && (
+        <div className="scope-note">
+          <Building2 size={16} />
+          <p>
+            <b>Показаны обращения вашего подразделения.</b> Сводка по всей компании доступна роли «
+            {companyViewer.name}».
+          </p>
+          <button onClick={() => selectUser(companyViewer.id)}>Открыть сводку по компании</button>
+        </div>
+      )}
       <Kpis data={data} />
       <div className="analytics-top">
         <Panel
@@ -100,22 +128,22 @@ export function AnalyticsPage() {
             </div>
           }
         >
-          <WeeklyChart tickets={tickets} />
+          <WeeklyChart data={data.weekly} />
         </Panel>
         <SlaPanel data={data} show={show} />
       </div>
       <div className="distribution-grid">
-        <Distribution title="По типам" data={group('type')} />
-        <Distribution title="По статусам" data={group('status')} />
-        <Distribution title="По категориям" data={group('category')} limit={7} />
+        <Distribution title="По типам" data={data.distributions.type} />
+        <Distribution title="По статусам" data={data.distributions.status} />
+        <Distribution title="По категориям" data={data.distributions.category} limit={7} />
       </div>
       <ClustersTable data={data} show={show} />
       <FrictionMatrix data={data} show={show} />
       <div className="analytics-note">
         <ChartNoAxesCombined size={16} />
         <span>
-          За период: {tickets.length} обращений по дате создания. Тренд всегда сравнивает последние
-          30 дней с предыдущими 30 по всей истории, независимо от фильтра.
+          За период: {data.total} обращений по дате создания. Тренд всегда сравнивает последние 30
+          дней с предыдущими 30 по всей истории, независимо от фильтра.
         </span>
       </div>
       {drill && (

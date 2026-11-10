@@ -77,11 +77,15 @@ export function Sidebar({ home, onReset }: { home: string; onReset: () => void }
             Внутренний контур<small>Обращение не потеряется</small>
           </div>
         </div>
-        <button onClick={onReset}>
+        <button
+          onClick={onReset}
+          disabled={current.role !== 'Администратор'}
+          title="Сброс демо-данных доступен администратору"
+        >
           <RotateCcw size={15} />
           Сбросить демо-данные
         </button>
-        <span className="version">ДЕМО-ПРОТОТИП · ЭТАП 01</span>
+        <span className="version">MVP · ДЕМО-ДАННЫЕ</span>
       </div>
     </aside>
   );

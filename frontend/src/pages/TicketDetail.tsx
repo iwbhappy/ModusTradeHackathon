@@ -9,7 +9,7 @@ import { RelatedTickets } from './ticket-detail/RelatedTickets';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Paperclip } from 'lucide-react';
-import { getTicket, listTickets } from '../api';
+import { downloadAttachment, getTicket, listTickets } from '../api';
 import { useApp } from '../store';
 import type { Ticket } from '../types';
 import { terminal } from '../lib/format';
@@ -125,12 +125,20 @@ export function TicketDetail() {
               )}
               {t.attachments.length > 0 && (
                 <div className="attachment-list">
-                  {t.attachments.map((file) => (
-                    <span className="file-chip" key={file}>
+                  {(t.attachmentFiles || []).map((file) => (
+                    <button
+                      className="file-chip"
+                      key={file.id}
+                      onClick={() =>
+                        downloadAttachment(file.id, file.name, userId).catch((error) =>
+                          setError(error.message),
+                        )
+                      }
+                    >
                       <Paperclip size={14} />
-                      {file}
-                      <small>имя файла</small>
-                    </span>
+                      {file.name}
+                      <small>{Math.ceil(file.size / 1024)} КБ · скачать</small>
+                    </button>
                   ))}
                 </div>
               )}

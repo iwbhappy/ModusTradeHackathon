@@ -1,16 +1,15 @@
 import { ArrowDown, ArrowUp, ArrowUpRight, ScanSearch } from 'lucide-react';
 
-import type { Analytics, Ticket } from '../../types';
-import { cost, number } from '../../lib/format';
+import type { Analytics, AnalyticsFilters } from '../../types';
+import { number } from '../../lib/format';
 import { Panel } from '../../components/ui';
 export function ClustersTable({
   data,
   show,
 }: {
   data: Analytics;
-  show: (title: string, tickets: Ticket[]) => void;
+  show: (title: string, filters: AnalyticsFilters) => void;
 }) {
-  const tickets = data.tickets;
   return (
     <Panel
       title="Повторяющиеся проблемы"
@@ -34,32 +33,21 @@ export function ClustersTable({
             </tr>
           </thead>
           <tbody>
-            {data.clusters.map((cluster) => {
-              const list = tickets.filter((t) => t.clusterId === cluster.id);
-              const delta = data.clusterTrends[cluster.id] || 0;
+            {data.clusterStats.map((cluster) => {
+              const delta = cluster.trend;
               return (
                 <tr key={cluster.id}>
                   <td>
                     <button
                       className="text-button cluster-title"
-                      onClick={() => show(cluster.title, list)}
+                      onClick={() => show(cluster.title, { cluster: cluster.id })}
                     >
                       {cluster.title}
                     </button>
                   </td>
-                  <td className="numeric mono">{list.length}</td>
-                  <td className="departments-cell">
-                    {[
-                      ...new Set(
-                        list.flatMap((t) => [
-                          t.authorDepartment,
-                          t.targetDepartment,
-                          ...t.participants.map((p) => p.department),
-                        ]),
-                      ),
-                    ].join(', ') || '—'}
-                  </td>
-                  <td className="numeric mono">{number(list.reduce((s, t) => s + cost(t), 0))}</td>
+                  <td className="numeric mono">{cluster.count}</td>
+                  <td className="departments-cell">{cluster.departments.join(', ') || '—'}</td>
+                  <td className="numeric mono">{number(cluster.monthlyCost)}</td>
                   <td className="numeric">
                     <span className="trend">
                       {delta > 0 ? (
@@ -75,7 +63,7 @@ export function ClustersTable({
                     <button
                       className="icon-button"
                       aria-label={`Открыть кластер: ${cluster.title}`}
-                      onClick={() => show(cluster.title, list)}
+                      onClick={() => show(cluster.title, { cluster: cluster.id })}
                     >
                       <ArrowUpRight size={15} />
                     </button>

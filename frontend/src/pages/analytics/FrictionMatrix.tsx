@@ -1,6 +1,6 @@
 import { Grid2X2 } from 'lucide-react';
 
-import type { Analytics, Ticket } from '../../types';
+import type { Analytics, AnalyticsFilters } from '../../types';
 
 import { Panel } from '../../components/ui';
 export function FrictionMatrix({
@@ -8,19 +8,12 @@ export function FrictionMatrix({
   show,
 }: {
   data: Analytics;
-  show: (title: string, tickets: Ticket[]) => void;
+  show: (title: string, filters: AnalyticsFilters) => void;
 }) {
-  const problems = data.tickets.filter((t) => t.type === 'Проблема');
-  const matrixMax = Math.max(
-    1,
-    ...data.departments.flatMap((a) =>
-      data.departments.map(
-        (b) => problems.filter((t) => t.authorDepartment === a && t.targetDepartment === b).length,
-      ),
-    ),
-  );
+  const matrixMax = Math.max(1, ...data.matrix.map((cell) => cell.count));
   const cells = (a: string, b: string) =>
-    problems.filter((t) => t.authorDepartment === a && t.targetDepartment === b);
+    data.matrix.find((cell) => cell.authorDepartment === a && cell.targetDepartment === b)?.count ||
+    0;
 
   return (
     <Panel
@@ -54,7 +47,7 @@ export function FrictionMatrix({
               <tr key={a}>
                 <th>{a}</th>
                 {data.departments.map((b) => {
-                  const count = cells(a, b).length;
+                  const count = cells(a, b);
                   const strength = count / matrixMax;
                   const color = count
                     ? ['#EBF0F6', '#CBDAE8', '#95AFC9', '#567FA6', '#1E3A5F'][
@@ -66,7 +59,13 @@ export function FrictionMatrix({
                       <button
                         title={`${a} → ${b}: ${count}`}
                         aria-label={`${a} сообщает о ${b}: ${count} обращений`}
-                        onClick={() => show(`${a} → ${b}`, cells(a, b))}
+                        onClick={() =>
+                          show(`${a} → ${b}`, {
+                            authorDepartment: a,
+                            targetDepartment: b,
+                            type: 'Проблема',
+                          })
+                        }
                         style={{ background: color, color: strength > 0.65 ? '#fff' : '#1E3A5F' }}
                         className="mono"
                       >

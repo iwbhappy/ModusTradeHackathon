@@ -46,7 +46,13 @@ export function TicketActions({ t, run, busy }: { t: Ticket; run: ActionRunner; 
                   'Отклонено',
                 ] as Status[]
               ).map((s) => (
-                <option disabled={s === t.status} key={s}>
+                <option
+                  disabled={
+                    s === t.status ||
+                    (catalog?.transitions && !catalog.transitions[t.status]?.includes(s))
+                  }
+                  key={s}
+                >
                   {s}
                 </option>
               ))}

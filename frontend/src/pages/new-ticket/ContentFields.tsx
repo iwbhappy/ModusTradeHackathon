@@ -118,7 +118,26 @@ export function ContentFields({
           />
         </Field>
       )}
-      <Attachments names={draft.attachments} onChange={(names) => change('attachments', names)} />
+      <Attachments
+        names={draft.attachments}
+        setBusy={setBusy}
+        onChange={(names) =>
+          setDraft((previous) => ({
+            ...previous,
+            attachments: names,
+            attachmentIds: previous.attachmentIds?.filter((_, index) =>
+              names.includes(previous.attachments[index]),
+            ),
+          }))
+        }
+        onUpload={(items) =>
+          setDraft((previous) => ({
+            ...previous,
+            attachments: [...previous.attachments, ...items.map((item) => item.name)],
+            attachmentIds: [...(previous.attachmentIds || []), ...items.map((item) => item.id)],
+          }))
+        }
+      />
       {draft.type === 'Проблема' && (
         <section className="cost-box">
           <div className="section-label">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronsUpDown, Search } from 'lucide-react';
 import { useApp } from '../../store';
+import { Notifications } from './Notifications';
 
 import type { Role } from '../../types';
 export function Header({ home }: { home: string }) {
@@ -9,13 +10,28 @@ export function Header({ home }: { home: string }) {
   const current = catalog!.users.find((u) => u.id === userId)!;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const switchRole = (role: Role) => {
-    selectRole(role);
-    navigate(role === 'Сотрудник' ? '/mine' : role === 'Руководитель' ? '/inbox' : '/routing');
-    setSearch('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const switchRole = async (role: Role) => {
+    setBusy(true);
+    setError('');
+    try {
+      await selectRole(role);
+      navigate(role === 'Сотрудник' ? '/mine' : role === 'Руководитель' ? '/inbox' : '/routing');
+      setSearch('');
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
   return (
-    <header className="topbar">
+    <header className="topbar" title="Демо-вход. В промышленной версии — SSO через Битрикс24 / AD">
+      {error && (
+        <span className="login-error" role="alert">
+          {error}
+        </span>
+      )}
       <form
         className="global-search"
         onSubmit={(e) => {
@@ -39,10 +55,13 @@ export function Header({ home }: { home: string }) {
         <kbd>Enter</kbd>
       </form>
       <div className="demo-role">
-        <span>Демо-роль</span>
+        <span className="demo-login-label">
+          Демо-вход<small>В промышленной версии — SSO через Битрикс24 / AD</small>
+        </span>
         <select
           aria-label="Демо-роль"
           value={current.role}
+          disabled={busy}
           onChange={(e) => switchRole(e.target.value as Role)}
         >
           <option>Сотрудник</option>
@@ -50,6 +69,7 @@ export function Header({ home }: { home: string }) {
           <option>Администратор</option>
         </select>
       </div>
+      <Notifications key={userId} />
       <div className="user-select">
         <span className="avatar">
           {current.role === 'Администратор' ? 'АС' : current.department.slice(0, 2).toUpperCase()}
@@ -57,10 +77,19 @@ export function Header({ home }: { home: string }) {
         <select
           aria-label="Текущий пользователь"
           value={userId}
-          onChange={(e) => {
-            selectUser(e.target.value);
-            setSearch('');
-            navigate(home);
+          disabled={busy}
+          onChange={async (e) => {
+            setBusy(true);
+            setError('');
+            try {
+              await selectUser(e.target.value);
+              setSearch('');
+              navigate(home);
+            } catch (error) {
+              setError((error as Error).message);
+            } finally {
+              setBusy(false);
+            }
           }}
         >
           {catalog!.users

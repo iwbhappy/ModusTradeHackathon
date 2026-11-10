@@ -9,7 +9,9 @@ export function RoutingPreview({ route }: { route: RoutePreview }) {
       <div>
         <strong>Обращение получит: {route.assignee.name}</strong>
         {route.fallback && (
-          <p className="overdue">{route.primary.name} в отпуске. Выбран резервный ответственный.</p>
+          <p className="overdue">
+            {route.reason || `${route.primary.name} в отпуске. Выбран резервный ответственный.`}
+          </p>
         )}
         <p>
           Первый ответ до <b>{date(route.responseDueAt)}</b> · решение до {date(route.dueAt)}

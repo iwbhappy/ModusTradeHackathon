@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, ShieldCheck } from 'lucide-react';
-import { saveRule } from '../api';
+import { isMockMode, runSlaCheck, saveRule } from '../api';
 import { useApp } from '../store';
 import type { Rule } from '../types';
 import { ErrorMessage, Field, Modal, PageTitle, Panel } from '../components/ui';
@@ -17,7 +17,29 @@ export function RoutingPage() {
       <PageTitle
         title="Категории и маршрутизация"
         subtitle="Ответственные, резервное назначение и сроки рассмотрения"
+        action={
+          <button
+            disabled={busy || isMockMode}
+            title={isMockMode ? 'Нужен HTTP-режим' : 'Запустить SLA и эскалации сейчас'}
+            onClick={async () => {
+              setBusy(true);
+              setError('');
+              try {
+                const result = await runSlaCheck(userId);
+                notify(`${result.message}: ${result.processed}`);
+                await refresh();
+              } catch (error) {
+                setError((error as Error).message);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Проверить SLA сейчас
+          </button>
+        }
       />
+      <ErrorMessage text={error} />
       <div className="info-strip">
         <ShieldCheck size={19} />
         <div>
@@ -50,7 +72,7 @@ export function RoutingPage() {
               {catalog.rules.map((rule) => (
                 <tr key={rule.id}>
                   <td>
-                    <strong>{rule.category}</strong>
+                    <strong>{rule.category || 'Правило по умолчанию'}</strong>
                     <small>{rule.department || 'Все подразделения'}</small>
                   </td>
                   <td>
@@ -126,6 +148,7 @@ export function RoutingPage() {
                 value={editing.category}
                 onChange={(e) => setEditing({ ...editing, category: e.target.value })}
               >
+                <option value="">Правило по умолчанию</option>
                 {catalog.categories.map((c) => (
                   <option key={c}>{c}</option>
                 ))}

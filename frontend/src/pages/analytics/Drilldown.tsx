@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ListFilter } from 'lucide-react';
 
 import { useApp } from '../../store';
@@ -12,7 +12,8 @@ export function Drilldown({
   drill: { title: string; tickets: Ticket[] };
   onClose: () => void;
 }) {
-  const { selectUser } = useApp();
+  const { selectUser, notify } = useApp();
+  const navigate = useNavigate();
   return (
     <Modal title={drill.title} onClose={onClose}>
       <div className="drill-summary">
@@ -34,16 +35,20 @@ export function Drilldown({
               <p className="small muted">
                 {t.authorDepartment} → {t.targetDepartment} · {date(t.createdAt)}
               </p>
-              <Link
+              <button
                 className="text-button"
-                to={`/tickets/${t.id}`}
-                onClick={() => {
-                  selectUser(t.assigneeId);
-                  onClose();
+                onClick={async () => {
+                  try {
+                    await selectUser(t.assigneeId);
+                    onClose();
+                    navigate(`/tickets/${t.id}`);
+                  } catch (error) {
+                    notify((error as Error).message);
+                  }
                 }}
               >
                 Открыть как ответственный <ArrowUpRight size={14} />
-              </Link>
+              </button>
             </article>
           ))}
         </div>

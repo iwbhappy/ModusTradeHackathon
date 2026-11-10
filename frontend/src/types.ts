@@ -17,6 +17,8 @@ export interface User {
   role: Role;
   department: string;
   vacation: boolean;
+  isDepartmentHead?: boolean;
+  canViewCompanyAnalytics?: boolean;
 }
 export interface Rule {
   id: string;
@@ -48,6 +50,7 @@ export interface Participant {
   minutes: number;
 }
 export interface Ticket {
+  deadlineLabel?: string;
   id: string;
   title: string;
   text: string;
@@ -55,6 +58,11 @@ export interface Ticket {
   category: string;
   priority: Priority;
   status: Status;
+  originalCategory?: string;
+  escalated?: boolean;
+  defaultConfirmed?: boolean;
+  monthlyCost?: number;
+  attachmentFiles?: AttachmentInfo[];
   authorId: string;
   authorDepartment: string;
   targetDepartment: string;
@@ -84,6 +92,7 @@ export interface Cluster {
   keywords: string[];
 }
 export interface TicketDraft {
+  attachmentIds?: string[];
   title: string;
   type: TicketType;
   category: string;
@@ -113,6 +122,7 @@ export interface SimilarityContext {
   targetDepartment?: string;
 }
 export interface RoutePreview {
+  reason?: string;
   assignee: User;
   primary: User;
   fallback: boolean;
@@ -133,19 +143,53 @@ export interface TicketFilters {
   targetDepartment?: string;
 }
 export interface Analytics {
-  tickets: Ticket[];
-  clusters: Cluster[];
-  clusterTrends: Record<string, number>;
+  total: number;
+  openCount: number;
+  overdueCount: number;
+  distributions: Record<'type' | 'category' | 'status', { label: string; value: number }[]>;
+  clusterStats: {
+    id: string;
+    title: string;
+    count: number;
+    monthlyCost: number;
+    departments: string[];
+    trend: number;
+  }[];
+  matrix: { authorDepartment: string; targetDepartment: string; count: number }[];
+  sla: { department: string; count: number }[];
+  weekly: { start: string; incoming: number; done: number }[];
+  companyScope: boolean;
   departments: string[];
-  users: User[];
   considered: number;
   medianHours: number;
   averageHours: number;
   resultRate: number;
   implemented: number;
   confirmed: number;
+  defaultConfirmed: number;
+}
+export interface AttachmentInfo {
+  id: string;
+  name: string;
+  size: number;
+}
+export interface AppNotification {
+  id: string;
+  ticketId: string;
+  text: string;
+  date: string;
+  read: boolean;
+}
+export interface AnalyticsFilters {
+  cluster?: string;
+  authorDepartment?: string;
+  targetDepartment?: string;
+  assigneeDepartment?: string;
+  overdue?: boolean;
+  type?: string;
 }
 export interface Catalog {
+  transitions?: Record<string, Status[]>;
   users: User[];
   rules: Rule[];
   departments: string[];

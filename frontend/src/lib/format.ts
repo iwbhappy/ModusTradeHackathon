@@ -11,10 +11,11 @@ export const overdue = (t: Ticket) => !terminal(t) && new Date(t.dueAt).getTime(
 export const monthly = (frequency: Frequency, minutes: number) =>
   (minutes * { ежедневно: 22, еженедельно: 4, ежемесячно: 1, разово: 0 }[frequency]) / 60;
 export const cost = (t: Ticket) =>
-  t.type === 'Проблема'
+  t.monthlyCost ??
+  (t.type === 'Проблема'
     ? monthly(t.frequency, t.minutes) +
       t.participants.reduce((sum, p) => sum + monthly(p.frequency, p.minutes), 0)
-    : 0;
+    : 0);
 export function businessDays(from: Date, days: number) {
   const d = new Date(from);
   let count = 0;
@@ -25,6 +26,7 @@ export function businessDays(from: Date, days: number) {
   return d.toISOString();
 }
 export function deadline(t: Ticket) {
+  if (t.deadlineLabel) return t.deadlineLabel;
   if (terminal(t))
     return t.status === 'Реализовано' && !t.confirmed ? 'Ожидает подтверждения' : 'Рассмотрено';
   const end = new Date(t.dueAt);
