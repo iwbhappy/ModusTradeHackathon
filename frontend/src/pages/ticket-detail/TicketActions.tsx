@@ -8,6 +8,7 @@ import { AiSource } from '../../components/AiSource';
 
 import { Field, Panel } from '../../components/ui';
 import type { ActionRunner } from './types';
+import { SolutionHints } from './SolutionHints';
 
 const MANAGER_STATUSES: Status[] = [
   'На рассмотрении',
@@ -127,6 +128,15 @@ export function TicketActions({
                   квадратных скобках.
                 </p>
               )}
+              <SolutionHints
+                key={`${userId}:${t.id}:${t.status}:${t.changed}`}
+                ticketId={id}
+                disabled={busy}
+                onUse={(result) => {
+                  setActionText(result.recommendation);
+                  setAppliedSource(result);
+                }}
+              />
               <button
                 type="button"
                 className="text-button"

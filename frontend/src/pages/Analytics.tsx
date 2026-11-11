@@ -25,7 +25,11 @@ export function AnalyticsPage() {
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [drill, setDrill] = useState<{ title: string; tickets: Ticket[] } | null>(null);
+  const [drill, setDrill] = useState<{
+    title: string;
+    tickets: Ticket[];
+    clusterId?: string;
+  } | null>(null);
   useEffect(() => {
     let live = true;
     setLoading(true);
@@ -40,6 +44,7 @@ export function AnalyticsPage() {
             setDrill({
               title: result.clusterStats.find((c) => c.id === cluster)?.title || 'Кластер',
               tickets,
+              clusterId: cluster,
             });
           }
         }
@@ -59,7 +64,11 @@ export function AnalyticsPage() {
   const show = async (title: string, filters: AnalyticsFilters) => {
     setError('');
     try {
-      setDrill({ title, tickets: await getAnalyticsTickets(days, filters, userId) });
+      setDrill({
+        title,
+        tickets: await getAnalyticsTickets(days, filters, userId),
+        clusterId: filters.cluster,
+      });
     } catch (error) {
       setError((error as Error).message);
     }
@@ -138,6 +147,7 @@ export function AnalyticsPage() {
       </div>
       {drill && (
         <Drilldown
+          key={`${userId}:${drill.clusterId || drill.title}`}
           drill={drill}
           onClose={() => {
             setDrill(null);

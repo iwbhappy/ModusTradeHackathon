@@ -20,6 +20,7 @@ from .ai.embeddings import embedder, load_vectors, sync_embeddings
 from .ai.provider import provider
 from .ai.llm import GeminiProvider
 from .ai.summary import summary_input
+from .ai.assist import root_cause_input, solution_hints_input
 from . import reports
 from .analytics_visuals import bounds, stage_condition, health_condition
 from .domain.permissions import analytics_clause
@@ -505,6 +506,39 @@ def structure(data: s.StructureInput, db: Database, user: CurrentUser):
     return GeminiProvider().structure(
         db, data.text, data.category, data.target_department, categories
     )
+
+
+@router.post("/ai/completeness")
+def completeness(data: s.StructureInput, db: Database, user: CurrentUser):
+    if user.role != "Сотрудник":
+        raise DomainError("Проверка полноты доступна сотруднику", 403)
+    if len(data.text.strip()) < 20:
+        raise DomainError("Для анализа нужно минимум 20 символов", 422)
+    if data.category and data.category not in set(db.scalars(select(m.Category.name))):
+        raise DomainError("Выберите категорию из справочника", 422)
+    if data.target_department and data.target_department not in set(
+        db.scalars(select(m.Department.name))
+    ):
+        raise DomainError("Выберите подразделение из справочника", 422)
+    return GeminiProvider().completeness(
+        db, data.text, data.category, data.target_department
+    )
+
+
+@router.post("/analytics/clusters/{cluster_id}/root-cause")
+def root_cause(cluster_id: str, db: Database, user: CurrentUser):
+    payload, fallback, revision = root_cause_input(db, user, cluster_id)
+    return GeminiProvider().root_cause(db, payload, fallback, revision)
+
+
+@router.post("/tickets/{ticket_id}/solution-hints")
+def solution_hints(ticket_id: str, db: Database, user: CurrentUser):
+    ticket = require_ticket(db, user, ticket_id, manage=True)
+    payload, similar, fallback = solution_hints_input(db, user, ticket)
+    return {
+        **GeminiProvider().solution_hints(db, payload, fallback),
+        "similar": similar,
+    }
 
 
 @router.post("/tickets/{ticket_id}/draft-response")

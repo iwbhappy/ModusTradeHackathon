@@ -11,6 +11,9 @@ from ..services import make_title
 
 
 class AIProvider(Protocol):
+    def solutions(
+        self, text: str, category: str, department: str, candidates: list[dict]
+    ) -> list[dict]: ...
     def similar(
         self, text: str, category: str, department: str, candidates: list[dict]
     ) -> list[dict]: ...
@@ -86,6 +89,12 @@ class RuleBasedProvider:
     """Детерминированный запасной вариант: работает без моделей и сети."""
 
     mode = "rules"
+
+    def solutions(self, text, category, department, candidates):
+        return sorted(
+            self.lexical(text, category, department, candidates),
+            key=lambda t: (-t["score"], t["id"]),
+        )[:3]
 
     def summary(self, data: dict) -> dict:
         kpi = data["kpi"]
@@ -262,12 +271,22 @@ class SemanticProvider(RuleBasedProvider):
     def similar(
         self, text: str, category: str, department: str, candidates: list[dict]
     ) -> list[dict]:
+        return shortlist(self.ranked(text, category, department, candidates))
+
+    def solutions(self, text, category, department, candidates):
+        try:
+            ranked = self.ranked(text, category, department, candidates)
+        except Exception:
+            ranked = self.lexical(text, category, department, candidates)
+        return sorted(ranked, key=lambda t: (-t["score"], t["id"]))[:3]
+
+    def ranked(self, text, category, department, candidates):
         from ..config import settings
         from .embeddings import embedder
 
         vectors = [c for c in candidates if c.get("vector") is not None]
         if not embedder.ready or not vectors:
-            return super().similar(text, category, department, candidates)
+            return self.lexical(text, category, department, candidates)
         query = embedder.encode([text])[0]
         words_by_id = {
             item["id"]: item["matchExplanation"].removeprefix("Совпадение: ")
@@ -293,7 +312,7 @@ class SemanticProvider(RuleBasedProvider):
                     "matchExplanation": explanation,
                 }
             )
-        return shortlist(scored)
+        return scored
 
 
 provider: AIProvider = SemanticProvider()

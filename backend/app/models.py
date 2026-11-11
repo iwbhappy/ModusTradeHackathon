@@ -224,3 +224,4 @@ class LLMUsage(Base):
     calls: Mapped[int] = mapped_column(Integer, default=0)
     input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    function_usage: Mapped[str] = mapped_column(Text, default="{}", server_default="{}")

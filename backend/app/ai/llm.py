@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from threading import Lock
-from typing import Literal
+from typing import Annotated, Literal
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -59,6 +59,31 @@ class DraftOutput(Output):
     text: str = Field(min_length=10, max_length=2000)
 
 
+class CompletenessOutput(Output):
+    complete: bool = Field(strict=True)
+    questions: list[Annotated[str, Field(min_length=1, max_length=140)]] = Field(
+        max_length=3
+    )
+
+
+class RootCauseOutput(Output):
+    cause: str = Field(min_length=1, max_length=220)
+    solution: str = Field(min_length=1, max_length=320)
+    evidence: list[str] = Field(max_length=4)
+    tried: str = Field(max_length=260)
+
+
+class SolutionHintsOutput(Output):
+    recommendation: str = Field(min_length=1, max_length=360)
+
+
+ASSIST_VERSIONS = {
+    "completeness": "completeness-v1",
+    "root_cause": "root-cause-v1",
+    "solution_hints": "solution-hints-v1",
+}
+
+
 class RecommendedAction(Output):
     target: str = Field(min_length=1, max_length=200)
     action: str = Field(min_length=1, max_length=800)
@@ -77,6 +102,24 @@ CONTEXT = (
     "Не восстанавливай замаскированные сведения и не добавляй персональные данные. "
 )
 INSTRUCTIONS = {
+    "completeness": (
+        "Проверь полноту описания: где/на каком этапе, как часто, конкретный пример. "
+        "Если всё есть, complete=true и questions=[]. Иначе complete=false и 1–3 коротких "
+        "предметных вопроса, каждый до 140 символов. Не спрашивай о том, что уже есть в тексте."
+    ),
+    "root_cause": (
+        "Предложи корневую причину повторяющейся проблемы одним предложением (cause до 220 символов) "
+        "и изменение процесса (solution до 320 символов), а не решение отдельной жалобы. "
+        "Это гипотеза по данным, не выдавай её за доказанный факт. evidence — 2–4 ID только "
+        "из tickets (если обращение одно — один ID). tried до 260 символов: что уже реализовали "
+        "и подтверждено ли автором или возвращено; если не пробовали — пустая строка. "
+        "Автоматическое закрытие не означает подтверждения автором."
+    ),
+    "solution_hints": (
+        "Напиши recommendation до 360 символов, 1–2 фразы: какой из результатов похожих "
+        "обращений применим здесь и что надо проверить. Используй только переданные результаты. "
+        "Учитывай подтверждение/возврат. Чужая реализация не означает, что эта проблема решена."
+    ),
     "period": (
         "Для КАЖДОЙ группы отчёта напиши 1–2 предложения, что конкретно сделано за период. "
         "JSON: ключ — точный id группы, значение — краткий русский текст. "
@@ -111,7 +154,23 @@ INSTRUCTIONS = {
 
 
 def response_schema(function: str, payload: dict) -> dict:
-    if function == "period":
+    if function == "completeness":
+        properties = {
+            "complete": {"type": "BOOLEAN"},
+            "questions": {"type": "ARRAY", "maxItems": 3, "items": {"type": "STRING"}},
+        }
+    elif function == "root_cause":
+        properties = {
+            name: {"type": "STRING"} for name in ("cause", "solution", "tried")
+        }
+        properties["evidence"] = {
+            "type": "ARRAY",
+            "maxItems": 4,
+            "items": {"type": "STRING", "enum": [t["id"] for t in payload["tickets"]]},
+        }
+    elif function == "solution_hints":
+        properties = {"recommendation": {"type": "STRING"}}
+    elif function == "period":
         properties = {g["id"]: {"type": "STRING"} for g in payload["groups"]}
     elif function == "structure":
         properties = {name: {"type": "STRING"} for name in StructureOutput.model_fields}
@@ -176,7 +235,45 @@ class GeminiProvider:
                 "tokensToday": incoming + outgoing,
                 "inputTokensToday": incoming,
                 "outputTokensToday": outgoing,
+                "functionsToday": json.loads(usage.function_usage) if usage else {},
             }
+
+    def completeness(self, db: Session, text: str, category: str, department: str):
+        from .assist import completeness_rules
+
+        return self.generate(
+            db,
+            "completeness",
+            {
+                "text": text,
+                "category": category,
+                "department": department,
+            },
+            completeness_rules(text),
+        )
+
+    def root_cause(self, db: Session, payload: dict, fallback: dict, revision: list):
+        result = self.generate(
+            db, "root_cause", payload, fallback, cache_context=revision
+        )
+        # A model can omit verification even when asked. Keep this fact explicit.
+        if fallback["tried"] and not re.search(
+            r"подтвержд|возвращ|автоматич|ожида", result["tried"], re.I
+        ):
+            result["tried"] = mask_personal_data(fallback["tried"])
+        return result
+
+    def solution_hints(self, db: Session, payload: dict, fallback: dict):
+        if not payload["similar"]:
+            with generation_lock:
+                return self._rules_result(
+                    db,
+                    "solution_hints",
+                    payload,
+                    fallback,
+                    "Похожие решения не найдены локально. Gemini не вызывался.",
+                )
+        return self.generate(db, "solution_hints", payload, fallback)
 
     def structure(
         self,
@@ -242,7 +339,7 @@ class GeminiProvider:
             }
         return self.generate(db, "period", payload, briefs)
 
-    def _reserve(self, db: Session, day: str) -> bool:
+    def _reserve(self, db: Session, day: str, function: str) -> bool:
         # Separate committed transaction: a timeout or route rollback never refunds a call.
         with Session(db.get_bind()) as ledger:
             if ledger.get(LLMUsage, day) is None:
@@ -261,6 +358,14 @@ class GeminiProvider:
                 )
                 .values(calls=LLMUsage.calls + 1)
             ).rowcount
+            if reserved:
+                usage = ledger.get(LLMUsage, day)
+                functions = json.loads(usage.function_usage)
+                item = functions.setdefault(
+                    function, {"calls": 0, "inputTokens": 0, "outputTokens": 0}
+                )
+                item["calls"] += 1
+                usage.function_usage = json.dumps(functions)
             ledger.commit()
             return bool(reserved)
 
@@ -292,6 +397,9 @@ class GeminiProvider:
                             "draft": 300,
                             "summary": 800,
                             "period": 4096,
+                            "completeness": 250,
+                            "root_cause": 400,
+                            "solution_hints": 250,
                         }[function],
                     },
                 },
@@ -316,8 +424,21 @@ class GeminiProvider:
             "structure": StructureOutput,
             "draft": DraftOutput,
             "summary": SummaryOutput,
+            "completeness": CompletenessOutput,
+            "root_cause": RootCauseOutput,
+            "solution_hints": SolutionHintsOutput,
         }[function]
         result = model.model_validate(value).model_dump()
+        if function == "completeness":
+            if result["complete"] != (not result["questions"]):
+                raise ValueError("Inconsistent completeness")
+        if function == "root_cause":
+            allowed = {t["id"] for t in payload["tickets"]}
+            result["evidence"] = list(
+                dict.fromkeys(i for i in result["evidence"] if i in allowed)
+            )
+            if len(result["evidence"]) < min(2, len(allowed)):
+                raise ValueError("Insufficient valid evidence")
         if function == "structure" and result["category"] not in payload["categories"]:
             raise ValueError("Category outside catalog")
         if function == "summary":
@@ -331,24 +452,90 @@ class GeminiProvider:
                 raise ValueError("Target outside aggregates")
         return result
 
-    def generate(
-        self, db: Session, function: str, payload: dict, fallback: dict
-    ) -> dict:
-        rules = {**fallback, "source": "rules", "cached": False}
-        if not self.enabled:
-            return {
-                **rules,
-                "notice": "Gemini отключён. Использована автоподсказка по правилам.",
-            }
-        payload = mask_personal_data(payload)
-        key = hashlib.sha256(
+    def _cache_key(self, function, payload, model, cache_context=None):
+        parts = [ASSIST_VERSIONS.get(function, "v1"), function, model, payload]
+        if cache_context is not None:
+            parts.append(cache_context)
+        return hashlib.sha256(
             json.dumps(
-                ["v1", function, self.config.llm_model, payload],
+                parts,
                 ensure_ascii=False,
                 sort_keys=True,
                 separators=(",", ":"),
             ).encode()
         ).hexdigest()
+
+    def _rules_key(self, function, payload, cache_context):
+        mode = (
+            f"rules:{self.config.llm_model}:{now().date().isoformat()}"
+            if self.enabled
+            else "rules:disabled"
+        )
+        return self._cache_key(
+            function, mask_personal_data(payload), mode, cache_context
+        )
+
+    def _read_rules(self, ledger, key, function, payload):
+        cached = ledger.get(LLMCache, key)
+        if not cached:
+            return None
+        value = json.loads(cached.response)
+        notice = value.pop("notice")
+        value = self._validate(function, value, payload)
+        return {**value, "source": "rules", "cached": True, "notice": notice}
+
+    def _rules_result(
+        self, db, function, payload, fallback, notice, cache_context=None
+    ):
+        result = {**fallback, "source": "rules", "cached": False, "notice": notice}
+        if function not in ASSIST_VERSIONS:
+            return result
+        fallback = mask_personal_data(fallback)
+        result = {**fallback, "source": "rules", "cached": False, "notice": notice}
+        key = self._rules_key(function, payload, cache_context)
+        try:
+            with Session(db.get_bind()) as ledger:
+                cached = self._read_rules(ledger, key, function, payload)
+                if cached:
+                    return cached
+                ledger.add(
+                    LLMCache(
+                        key=key,
+                        function=function,
+                        model="rules",
+                        response=json.dumps(
+                            {**fallback, "notice": notice}, ensure_ascii=False
+                        ),
+                    )
+                )
+                ledger.commit()
+        except Exception as error:
+            log.warning(
+                "Rules cache unavailable: %s (%s)", function, type(error).__name__
+            )
+        return result
+
+    def generate(
+        self,
+        db: Session,
+        function: str,
+        payload: dict,
+        fallback: dict,
+        *,
+        cache_context=None,
+    ) -> dict:
+        if not self.enabled:
+            with generation_lock:
+                return self._rules_result(
+                    db,
+                    function,
+                    payload,
+                    fallback,
+                    "Gemini отключён. Использована автоподсказка по правилам.",
+                    cache_context,
+                )
+        payload = mask_personal_data(payload)
+        key = self._cache_key(function, payload, self.config.llm_model, cache_context)
         try:
             with generation_lock:
                 with Session(db.get_bind()) as ledger:
@@ -358,13 +545,26 @@ class GeminiProvider:
                             function, json.loads(cached.response), payload
                         )
                         return {**value, "source": "llm", "cached": True}
+                    if function in ASSIST_VERSIONS:
+                        cached_rules = self._read_rules(
+                            ledger,
+                            self._rules_key(function, payload, cache_context),
+                            function,
+                            payload,
+                        )
+                        if cached_rules:
+                            return cached_rules
                 day = now().date().isoformat()
-                if not self._reserve(db, day):
+                if not self._reserve(db, day, function):
                     log.info("Gemini fallback: daily limit")
-                    return {
-                        **rules,
-                        "notice": "Дневной лимит Gemini исчерпан. Использована автоподсказка по правилам.",
-                    }
+                    return self._rules_result(
+                        db,
+                        function,
+                        payload,
+                        fallback,
+                        "Дневной лимит Gemini исчерпан. Использована автоподсказка по правилам.",
+                        cache_context,
+                    )
                 body = self._request(function, payload)
                 usage = body.get("usageMetadata", {})
                 incoming = max(0, int(usage.get("promptTokenCount", 0)))
@@ -375,6 +575,12 @@ class GeminiProvider:
                     int(usage.get("totalTokenCount", 0)) - incoming,
                 )
                 with Session(db.get_bind()) as ledger:
+                    row = ledger.get(LLMUsage, day)
+                    functions = json.loads(row.function_usage)
+                    item = functions[function]
+                    item["inputTokens"] += incoming
+                    item["outputTokens"] += outgoing
+                    row.function_usage = json.dumps(functions)
                     ledger.execute(
                         update(LLMUsage)
                         .where(LLMUsage.day == day)
@@ -406,7 +612,11 @@ class GeminiProvider:
         except Exception as error:
             # Never log exception strings, response bodies, inputs or request headers.
             log.warning("Gemini fallback: %s (%s)", function, type(error).__name__)
-            return {
-                **rules,
-                "notice": "Gemini недоступен. Использована автоподсказка по правилам.",
-            }
+            return self._rules_result(
+                db,
+                function,
+                payload,
+                fallback,
+                "Gemini недоступен. Использована автоподсказка по правилам.",
+                cache_context,
+            )

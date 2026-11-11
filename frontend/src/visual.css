@@ -439,6 +439,53 @@ td small,
   gap: 16px;
   margin-bottom: 16px;
 }
+.structure-button {
+  flex-wrap: wrap;
+}
+.structure-button > small {
+  flex-basis: 100%;
+}
+.ai-assistant > .between {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ai-assistant h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+}
+.assistant-result {
+  margin-top: 14px;
+}
+.assistant-result dt {
+  font-weight: 600;
+  margin-top: 12px;
+}
+.assistant-result dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.assistant-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.assistant-history article {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.assistant-history article:last-child {
+  margin-bottom: 14px;
+}
+.ai-assistant a {
+  color: var(--action);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .metric-card {
   position: relative;
   display: flex;

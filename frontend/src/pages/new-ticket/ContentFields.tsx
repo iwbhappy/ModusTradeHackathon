@@ -95,6 +95,7 @@ export function ContentFields({
         targetDepartment={draft.targetDepartment}
         busy={busy}
         setBusy={setBusy}
+        onAppend={(text) => change('text', text)}
         onAccept={(structure) => {
           setDraft((previous) => ({
             ...previous,

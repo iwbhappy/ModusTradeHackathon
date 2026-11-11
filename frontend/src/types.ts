@@ -155,6 +155,27 @@ export interface AiStatus {
 export interface ResponseDraft extends GenerationMeta {
   text: string;
 }
+export interface Completeness extends GenerationMeta {
+  complete: boolean;
+  questions: string[];
+}
+export interface RootCause extends GenerationMeta {
+  cause: string;
+  solution: string;
+  evidence: string[];
+  tried: string;
+}
+export interface SolutionHints extends GenerationMeta {
+  similar: {
+    id: string;
+    title: string;
+    changed: string;
+    verification: string;
+    canRead: boolean;
+    assigneeId: string;
+  }[];
+  recommendation: string;
+}
 export interface ManagerSummary extends GenerationMeta {
   highlights: string[];
   actions: { target: string; action: string }[];

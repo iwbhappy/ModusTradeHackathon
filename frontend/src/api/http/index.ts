@@ -5,6 +5,9 @@ import type {
   PeriodSummary,
   ManagerSummary,
   ResponseDraft,
+  Completeness,
+  RootCause,
+  SolutionHints,
   AnalyticsFilters,
   AppNotification,
   AttachmentInfo,
@@ -73,6 +76,12 @@ export const suggestStructure = (text: string, context: SimilarityContext = {}) 
   post<Structure>('/ai/structure', { text, ...context });
 export const draftResponse = (id: string, status: Status, userId: string) =>
   post<ResponseDraft>(`/tickets/${id}/draft-response`, { status }, userId);
+export const checkCompleteness = (text: string, context: SimilarityContext, userId: string) =>
+  post<Completeness>('/ai/completeness', { text, ...context }, userId);
+export const determineRootCause = (clusterId: string, userId: string) =>
+  post<RootCause>(`/analytics/clusters/${encodeURIComponent(clusterId)}/root-cause`, {}, userId);
+export const getSolutionHints = (id: string, userId: string) =>
+  post<SolutionHints>(`/tickets/${id}/solution-hints`, {}, userId);
 export const generateSummary = (days: number, userId: string) =>
   post<ManagerSummary>(`/analytics/summary?${query({ days })}`, {}, userId);
 export const getAnalytics = (days: number, userId: string) =>

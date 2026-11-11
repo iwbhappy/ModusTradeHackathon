@@ -2,6 +2,7 @@ export { getCatalog, resetDemo } from './storage';
 export * from './tickets';
 export { getAnalytics, getAnalyticsTickets } from './analytics';
 export { getPeriodReport, summarizePeriod } from './reports';
+export { checkCompleteness, determineRootCause, getSolutionHints } from './assist';
 export { previewRouting, saveRule, setVacation } from './routing';
 export {
   findSimilar,
