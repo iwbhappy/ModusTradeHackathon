@@ -1,66 +1,70 @@
-/* Material Color Utilities 0.3.0: SchemeTonalSpot, #1D5FD1, light, contrast 0 (MD3 2021). */
+/* Material Color Utilities 0.3.0: SchemeFidelity, #1D5FD1, light, contrast 0.
+   Brand primary + tone-80 container; custom HCT teal/amber and blue-tinted surfaces. */
 html[data-design='md3'] {
-  --md-sys-color-primary: #475d92;
+  --md-sys-color-primary: #1d5fd1;
   --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d9e2ff;
-  --md-sys-color-on-primary-container: #2f4578;
-  --md-sys-color-secondary: #585e71;
+  --md-sys-color-primary-container: #b1c5ff;
+  --md-sys-color-on-primary-container: #002c70;
+  --md-sys-color-secondary: #1b6772;
   --md-sys-color-on-secondary: #ffffff;
-  --md-sys-color-secondary-container: #dce2f9;
-  --md-sys-color-on-secondary-container: #404659;
-  --md-sys-color-tertiary: #725572;
+  --md-sys-color-secondary-container: #a9eefa;
+  --md-sys-color-on-secondary-container: #004f58;
+  --md-sys-color-tertiary: #b45f06;
   --md-sys-color-on-tertiary: #ffffff;
-  --md-sys-color-tertiary-container: #fdd7fa;
-  --md-sys-color-on-tertiary-container: #593d59;
+  --md-sys-color-tertiary-container: #ffdcc4;
+  --md-sys-color-on-tertiary-container: #703800;
   --md-sys-color-error: #ba1a1a;
   --md-sys-color-on-error: #ffffff;
   --md-sys-color-error-container: #ffdad6;
   --md-sys-color-on-error-container: #93000a;
-  --md-sys-color-background: #faf8ff;
-  --md-sys-color-on-background: #1a1b21;
-  --md-sys-color-surface: #faf8ff;
-  --md-sys-color-on-surface: #1a1b21;
-  --md-sys-color-surface-variant: #e1e2ec;
-  --md-sys-color-on-surface-variant: #44464f;
-  --md-sys-color-surface-dim: #dad9e0;
+  --md-sys-color-background: #e6ebf5;
+  --md-sys-color-on-background: #191b22;
+  --md-sys-color-surface: #f6f9ff;
+  --md-sys-color-on-surface: #191b22;
+  --md-sys-color-surface-variant: #dfe2f2;
+  --md-sys-color-on-surface-variant: #424653;
+  --md-sys-color-surface-dim: #d9d9e3;
   --md-sys-color-surface-bright: #faf8ff;
   --md-sys-color-surface-container-lowest: #ffffff;
-  --md-sys-color-surface-container-low: #f4f3fa;
-  --md-sys-color-surface-container: #eeedf4;
-  --md-sys-color-surface-container-high: #e8e7ef;
-  --md-sys-color-surface-container-highest: #e2e2e9;
-  --md-sys-color-outline: #757780;
-  --md-sys-color-outline-variant: #c5c6d0;
+  --md-sys-color-surface-container-low: #f1f5fc;
+  --md-sys-color-surface-container: #e6ebf5;
+  --md-sys-color-surface-container-high: #dce5f5;
+  --md-sys-color-surface-container-highest: #d1def2;
+  --md-sys-color-outline: #737785;
+  --md-sys-color-outline-variant: #c3c6d6;
   --md-sys-color-shadow: #000000;
   --md-sys-color-scrim: #000000;
-  --md-sys-color-surface-tint: #475d92;
-  --md-sys-color-inverse-surface: #2f3036;
-  --md-sys-color-inverse-on-surface: #f1f0f7;
+  --md-sys-color-surface-tint: #1d5fd1;
+  --md-sys-color-inverse-surface: #2e3038;
+  --md-sys-color-inverse-on-surface: #f0f0fa;
   --md-sys-color-inverse-primary: #b1c5ff;
   --md-sys-color-primary-fixed: #d9e2ff;
   --md-sys-color-primary-fixed-dim: #b1c5ff;
   --md-sys-color-on-primary-fixed: #001946;
-  --md-sys-color-on-primary-fixed-variant: #2f4578;
-  --md-sys-color-secondary-fixed: #dce2f9;
-  --md-sys-color-secondary-fixed-dim: #c0c6dc;
-  --md-sys-color-on-secondary-fixed: #151b2c;
-  --md-sys-color-on-secondary-fixed-variant: #404659;
-  --md-sys-color-tertiary-fixed: #fdd7fa;
-  --md-sys-color-tertiary-fixed-dim: #e0bbdd;
-  --md-sys-color-on-tertiary-fixed: #2a122c;
-  --md-sys-color-on-tertiary-fixed-variant: #593d59;
-  --md-status-review-container: #98f0fb;
-  --md-status-on-review-container: #004f56;
-  --md-status-work-container: #dee1ff;
-  --md-status-on-work-container: #273d9d;
-  --md-status-done-container: #96f8a6;
-  --md-status-on-done-container: #005322;
-  --md-status-closed-container: #bdeec9;
-  --md-status-on-closed-container: #234f34;
-  --md-status-warning-container: #ffdcbd;
-  --md-status-on-warning-container: #693c00;
-  --md-status-returned-container: #ffdbcf;
-  --md-status-on-returned-container: #822700;
+  --md-sys-color-on-primary-fixed-variant: #00419d;
+  --md-sys-color-secondary-fixed: #a9eefa;
+  --md-sys-color-secondary-fixed-dim: #8dd1dd;
+  --md-sys-color-on-secondary-fixed: #001f24;
+  --md-sys-color-on-secondary-fixed-variant: #004f58;
+  --md-sys-color-tertiary-fixed: #ffdcc4;
+  --md-sys-color-tertiary-fixed-dim: #ffb781;
+  --md-sys-color-on-tertiary-fixed: #2e1500;
+  --md-sys-color-on-tertiary-fixed-variant: #703800;
+  --md-nav-container: #003786;
+  --md-nav-on-container: var(--md-sys-color-on-primary);
+  --md-confirmed-accent: #1baf7a;
+  --md-status-review-container: var(--md-sys-color-secondary-container);
+  --md-status-on-review-container: var(--md-sys-color-on-secondary-container);
+  --md-status-work-container: var(--md-sys-color-secondary-container);
+  --md-status-on-work-container: var(--md-sys-color-on-secondary-container);
+  --md-status-done-container: #79fabf;
+  --md-status-on-done-container: #005236;
+  --md-status-closed-container: #beffdb;
+  --md-status-on-closed-container: #005236;
+  --md-status-warning-container: var(--md-sys-color-tertiary-container);
+  --md-status-on-warning-container: var(--md-sys-color-on-tertiary-container);
+  --md-status-returned-container: var(--md-sys-color-tertiary-container);
+  --md-status-on-returned-container: var(--md-sys-color-on-tertiary-container);
 
   --md-sys-typescale-display-large: 400 57px/64px 'Roboto', sans-serif;
   --md-sys-typescale-display-medium: 400 45px/52px 'Roboto', sans-serif;
@@ -97,7 +101,7 @@ html[data-design='md3'] {
   --md-sys-elevation-3: 0 1px 3px #00000030, 0 4px 8px 3px #00000015;
 
   /* Bridge existing semantic variables without changing their classic definitions. */
-  --canvas: var(--md-sys-color-surface);
+  --canvas: var(--md-sys-color-surface-container);
   --surface: var(--md-sys-color-surface-container-lowest);
   --line: var(--md-sys-color-outline-variant);
   --ink: var(--md-sys-color-on-surface);
@@ -105,11 +109,11 @@ html[data-design='md3'] {
   --muted: var(--md-sys-color-on-surface-variant);
   --action: var(--md-sys-color-primary);
   --panel-shadow: var(--md-sys-elevation-1);
-  --md-field-surface: var(--md-sys-color-surface-container-low);
+  --md-field-surface: var(--md-sys-color-surface-container-lowest);
   font: var(--md-sys-typescale-body-medium);
   letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   color: var(--md-sys-color-on-surface);
-  background: var(--md-sys-color-surface);
+  background: var(--md-sys-color-surface-container);
   color-scheme: light;
 }
 
@@ -117,7 +121,7 @@ html[data-design='md3'] {
 html[data-design='md3'] body {
   font: inherit;
   color: inherit;
-  background: var(--md-sys-color-surface);
+  background: var(--md-sys-color-surface-container);
 }
 html[data-design='md3'] :is(h1, .page-title h1) {
   font: var(--md-sys-typescale-headline-large);
@@ -190,21 +194,21 @@ html[data-design='md3'] :is(button, a, input, select, textarea, [tabindex]):focu
 html[data-design='md3'] .sidebar {
   width: 240px;
   padding: 24px 12px 20px;
-  background: var(--md-sys-color-surface-container-low);
-  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-nav-container);
+  color: var(--md-nav-on-container);
   border-right: 0;
 }
 html[data-design='md3'] .app-content {
   margin-left: 240px;
 }
 html[data-design='md3'] .brand {
-  color: var(--md-sys-color-on-surface);
+  color: var(--md-nav-on-container);
   font-weight: 500;
   letter-spacing: 0.1px;
 }
 html[data-design='md3'] .brand-mark {
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
+  background: color-mix(in srgb, var(--md-nav-on-container) 12%, var(--md-nav-container));
+  color: var(--md-nav-on-container);
   border-radius: var(--md-sys-shape-large);
 }
 html[data-design='md3']
@@ -216,7 +220,7 @@ html[data-design='md3']
     .sidebar .security-note small,
     .sidebar-bottom > button
   ) {
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-nav-on-container);
 }
 html[data-design='md3'] .sidebar nav a {
   min-height: 56px;
@@ -224,46 +228,44 @@ html[data-design='md3'] .sidebar nav a {
   border: 0;
   border-radius: var(--md-sys-shape-full);
   font: var(--md-sys-typescale-label-large);
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-nav-on-container);
   background: transparent;
   text-decoration: none;
   transition: background-color 200ms;
 }
 html[data-design='md3'] .sidebar nav a:hover {
-  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  background: color-mix(in srgb, var(--md-nav-on-container) 8%, var(--md-nav-container));
 }
 html[data-design='md3'] .sidebar nav a.active {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
 html[data-design='md3'] .sidebar nav a.active:hover {
   background: color-mix(
     in srgb,
-    var(--md-sys-color-on-secondary-container) 8%,
-    var(--md-sys-color-secondary-container)
+    var(--md-sys-color-on-primary-container) 8%,
+    var(--md-sys-color-primary-container)
   );
 }
 html[data-design='md3'] .sidebar nav a:active {
-  background: color-mix(
-    in srgb,
-    var(--md-sys-color-on-secondary-container) 10%,
-    var(--md-sys-color-secondary-container)
-  );
+  background: color-mix(in srgb, var(--md-nav-on-container) 10%, var(--md-nav-container));
 }
 html[data-design='md3'] .sidebar nav a:focus-visible {
-  background: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent);
+  background: color-mix(in srgb, var(--md-nav-on-container) 10%, var(--md-nav-container));
+  outline-color: var(--md-nav-on-container);
 }
-html[data-design='md3'] .sidebar nav a.active:focus-visible {
+html[data-design='md3'] .sidebar nav a.active:is(:focus-visible, :active) {
   background: color-mix(
     in srgb,
-    var(--md-sys-color-on-secondary-container) 10%,
-    var(--md-sys-color-secondary-container)
+    var(--md-sys-color-on-primary-container) 10%,
+    var(--md-sys-color-primary-container)
   );
 }
 html[data-design='md3'] .topbar {
   min-height: 72px;
   border: 0;
-  background: var(--md-sys-color-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
   box-shadow: var(--md-sys-elevation-0);
   gap: 16px;
 }
@@ -300,7 +302,7 @@ html[data-design='md3'] .avatar {
   font: var(--md-sys-typescale-label-medium);
 }
 
-/* Existing actions: outlined by default, filled/tonal/text by meaning.
+/* Existing actions: tonal by default, primary actions filled, tertiary actions text.
    Data marks are excluded so their validated chart palette is never overwritten. */
 html[data-design='md3']
   :is(button, .button):not(
@@ -314,11 +316,11 @@ html[data-design='md3']
       .heatmap button
     )
   ) {
-  --md-button-container: transparent;
-  --md-button-ink: var(--md-sys-color-primary);
+  --md-button-container: var(--md-sys-color-secondary-container);
+  --md-button-ink: var(--md-sys-color-on-secondary-container);
   min-height: 40px;
   padding: 10px 24px;
-  border: 1px solid var(--md-sys-color-outline);
+  border: 1px solid transparent;
   border-radius: var(--md-sys-shape-full);
   background: var(--md-button-container);
   color: var(--md-button-ink);
@@ -331,7 +333,17 @@ html[data-design='md3']
     box-shadow 200ms,
     border-color 200ms;
 }
-html[data-design='md3'] :is(button.primary, .button.primary, .compose-form .form-footer .primary) {
+html[data-design='md3']
+  :is(
+    button.primary,
+    .button.primary,
+    .compose-form .form-footer .primary,
+    :where(
+      .manager-summary > button,
+      .report-section-title > button.no-print,
+      .page-title > .button-row > button:first-child
+    )
+  ) {
   --md-button-container: var(--md-sys-color-primary);
   --md-button-ink: var(--md-sys-color-on-primary);
   border-color: transparent;
@@ -354,7 +366,7 @@ html[data-design='md3']
 }
 html[data-design='md3'] :is(.text-button, button.text-button, .back-link) {
   --md-button-container: transparent;
-  --md-button-ink: var(--md-sys-color-primary);
+  --md-button-ink: var(--md-sys-color-on-primary-container);
   min-height: 40px;
   border: 0;
   padding: 10px 12px;
@@ -418,7 +430,14 @@ html[data-design='md3']
     var(--md-button-container)
   );
 }
-html[data-design='md3'] :is(button.primary, .button.primary):hover:not(:disabled) {
+html[data-design='md3']
+  :is(
+    button.primary,
+    .button.primary,
+    .manager-summary > button,
+    .report-section-title > button.no-print,
+    .page-title > .button-row > button:first-child
+  ):hover:not(:disabled) {
   box-shadow: var(--md-sys-elevation-1);
 }
 html[data-design='md3']
@@ -443,6 +462,23 @@ html[data-design='md3']
 }
 
 /* Segmented buttons and primary tabs. */
+html[data-design='md3'] .sidebar .sidebar-bottom > button {
+  --md-button-container: transparent;
+  --md-button-ink: var(--md-nav-on-container);
+  background: transparent;
+  color: var(--md-nav-on-container);
+  border-color: color-mix(in srgb, var(--md-nav-on-container) 50%, transparent);
+}
+html[data-design='md3'] .sidebar .sidebar-bottom > button:disabled[disabled] {
+  --md-button-container: transparent;
+  --md-button-ink: color-mix(in srgb, var(--md-nav-on-container) 70%, var(--md-nav-container));
+  background: transparent;
+  color: var(--md-button-ink);
+  border-color: color-mix(in srgb, var(--md-nav-on-container) 38%, transparent);
+}
+html[data-design='md3'] .sidebar :is(nav a svg, .security-note svg) {
+  color: inherit;
+}
 html[data-design='md3'] :is(.segmented, .period-selector .segmented) {
   padding: 0;
   gap: 0;
@@ -451,11 +487,15 @@ html[data-design='md3'] :is(.segmented, .period-selector .segmented) {
   border-radius: var(--md-sys-shape-full);
 }
 html[data-design='md3'] .segmented button {
+  --md-button-container: var(--md-sys-color-surface-container-lowest);
+  --md-button-ink: var(--md-sys-color-on-surface-variant);
   min-height: 40px;
   padding: 9px 16px;
   border: 1px solid var(--md-sys-color-outline);
   border-right: 0;
   border-radius: 0;
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
 }
 html[data-design='md3'] .segmented button:first-child {
   border-radius: 100px 0 0 100px;
@@ -492,6 +532,7 @@ html[data-design='md3'] .list-tabs {
   border-color: var(--md-sys-color-outline-variant);
 }
 html[data-design='md3'] .list-tabs button {
+  --md-button-container: transparent;
   --md-button-ink: var(--md-sys-color-on-surface-variant);
   position: relative;
   min-height: 48px;
@@ -540,7 +581,7 @@ html[data-design='md3'] .notification-count {
 
 /* Filled/elevated cards and supporting surfaces. */
 html[data-design='md3'] :is(.panel, .metric-card, .kpi-row) {
-  background: var(--md-sys-color-surface-container-low);
+  background: var(--md-sys-color-surface-container-lowest);
   border: 0;
   border-radius: var(--md-sys-shape-medium);
   box-shadow: var(--md-sys-elevation-1);
@@ -555,7 +596,24 @@ html[data-design='md3'] .panel-heading h2 {
   color: var(--md-sys-color-on-surface);
 }
 html[data-design='md3'] :is(.panel-heading h2 > svg, .section-heading > svg) {
-  color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border-radius: var(--md-sys-shape-full);
+}
+html[data-design='md3'] .panel-attention .panel-heading h2 > svg {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+html[data-design='md3'] .panel-result .panel-heading h2 > svg {
+  background: var(--md-status-done-container);
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3'] .panel:has(> .panel-body > .error) > .panel-heading h2 > svg {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
 }
 html[data-design='md3']
   :is(
@@ -567,14 +625,83 @@ html[data-design='md3']
   padding: 24px;
 }
 html[data-design='md3'] .metric-card {
+  --md-kpi-accent: var(--md-sys-color-primary);
+  --md-kpi-container: var(--md-sys-color-primary-container);
+  --md-kpi-on-container: var(--md-sys-color-on-primary-container);
+  border-left: 4px solid var(--md-kpi-accent);
   padding: 24px;
   gap: 12px;
+}
+html[data-design='md3'] .metric-resolved {
+  --md-kpi-accent: var(--md-sys-color-secondary);
+  --md-kpi-container: var(--md-sys-color-secondary-container);
+  --md-kpi-on-container: var(--md-sys-color-on-secondary-container);
+}
+html[data-design='md3'] .metric-confirmed {
+  --md-kpi-accent: var(--md-confirmed-accent);
+  --md-kpi-container: var(--md-status-done-container);
+  --md-kpi-on-container: var(--md-status-on-done-container);
+}
+html[data-design='md3'] .metric-savedHours {
+  --md-kpi-accent: var(--md-sys-color-tertiary);
+  --md-kpi-container: var(--md-sys-color-tertiary-container);
+  --md-kpi-on-container: var(--md-sys-color-on-tertiary-container);
 }
 html[data-design='md3'] .metric-label {
   font: var(--md-sys-typescale-label-large);
   text-transform: none;
   letter-spacing: 0.1px;
-  color: var(--md-sys-color-on-surface-variant);
+  padding: 8px 10px;
+  border-radius: var(--md-sys-shape-small);
+  background: var(--md-kpi-container);
+  color: var(--md-kpi-on-container);
+}
+html[data-design='md3'] .metric-card .metric-value {
+  color: var(--md-kpi-on-container);
+}
+html[data-design='md3'] .attention-list {
+  padding: 16px;
+  gap: 12px;
+}
+html[data-design='md3'] .attention-item {
+  --md-attention-container: var(--md-sys-color-error-container);
+  --md-attention-on-container: var(--md-sys-color-on-error-container);
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  background: var(--md-attention-container);
+  color: var(--md-attention-on-container);
+  align-items: center;
+}
+html[data-design='md3'] :is(.severity-returned, .severity-awaiting) {
+  --md-attention-container: var(--md-sys-color-tertiary-container);
+  --md-attention-on-container: var(--md-sys-color-on-tertiary-container);
+}
+html[data-design='md3'] .severity-emerging {
+  --md-attention-container: var(--md-sys-color-primary-container);
+  --md-attention-on-container: var(--md-sys-color-on-primary-container);
+}
+html[data-design='md3'] .attention-item > :is(svg, strong, span:last-child) {
+  color: var(--md-attention-on-container);
+}
+html[data-design='md3'] .attention-item > strong {
+  font-size: 24px;
+  line-height: 32px;
+}
+html[data-design='md3'] .attention-item:hover {
+  background: color-mix(
+    in srgb,
+    var(--md-attention-on-container) 8%,
+    var(--md-attention-container)
+  );
+}
+html[data-design='md3'] .attention-item:is(:focus-visible, :active) {
+  background: color-mix(
+    in srgb,
+    var(--md-attention-on-container) 10%,
+    var(--md-attention-container)
+  );
 }
 html[data-design='md3']
   :is(
@@ -830,7 +957,7 @@ html[data-design='md3']
   border-color: var(--md-sys-color-outline-variant);
 }
 html[data-design='md3'] .tracking li > div {
-  background: var(--md-sys-color-surface-container-low);
+  background: var(--md-sys-color-surface-container-lowest);
 }
 html[data-design='md3'] :is(.track-circle, .history-dot) {
   border-radius: var(--md-sys-shape-full);
@@ -872,8 +999,8 @@ html[data-design='md3'] .badge.status-closed {
   color: var(--md-status-on-closed-container);
 }
 html[data-design='md3'] .badge.status-rejected {
-  background: var(--md-sys-color-surface-container-highest);
-  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
 }
 html[data-design='md3'] :is(.badge.status-returned, .priority-high) {
   background: var(--md-status-returned-container);
@@ -886,8 +1013,11 @@ html[data-design='md3'] .badge.status-escalated {
 
 /* Data tables keep their horizontal scroll on small screens. */
 html[data-design='md3'] :is(table, thead, tbody, .table-wrap) {
-  background: var(--md-sys-color-surface);
+  background: var(--md-sys-color-surface-container-lowest);
   color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] thead {
+  background: var(--md-sys-color-surface-container-high);
 }
 html[data-design='md3'] :is(th, td) {
   border-color: var(--md-sys-color-outline-variant);
@@ -903,7 +1033,11 @@ html[data-design='md3'] :is(.tickets-table tr.overdue-row td, tbody tr td) {
   background: transparent;
 }
 html[data-design='md3'] tbody tr:hover {
-  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, var(--md-sys-color-surface));
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-primary) 8%,
+    var(--md-sys-color-surface-container-lowest)
+  );
 }
 html[data-design='md3'] .tickets-table tr.overdue-row td:first-child {
   box-shadow: inset 3px 0 var(--md-sys-color-error);
@@ -948,6 +1082,7 @@ html[data-design='md3']
   background: var(--md-sys-color-outline-variant);
 }
 html[data-design='md3'] .vacation-switch {
+  --md-button-container: transparent;
   --md-button-ink: var(--md-sys-color-on-surface);
   min-height: 48px;
   padding: 8px;
@@ -989,8 +1124,17 @@ html[data-design='md3'] :is(.error, .login-error, .journal-integrity.broken) {
   border-radius: var(--md-sys-shape-medium);
 }
 html[data-design='md3'] :is(.empty, .loading) {
-  color: var(--md-sys-color-on-surface-variant);
+  padding: 24px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
   border-radius: var(--md-sys-shape-medium);
+}
+html[data-design='md3'] .loading {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+html[data-design='md3'] :is(.empty, .loading) :is(p, strong, small) {
+  color: inherit;
 }
 html[data-design='md3'] .loading svg {
   color: var(--md-sys-color-primary);
@@ -1026,8 +1170,37 @@ html[data-design='md3'] :is(.toast, .chart-tooltip, .viz-tooltip) {
   font: var(--md-sys-typescale-body-medium);
 }
 html[data-design='md3'] :is(.chart-tooltip, .viz-tooltip) {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
   font: var(--md-sys-typescale-body-small);
   box-shadow: var(--md-sys-elevation-0);
+}
+html[data-design='md3'] :is(.system-box, .panel-hint, .privacy-note) {
+  --md-field-surface: var(--md-sys-color-secondary-container);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+html[data-design='md3'] :is(.system-box, .panel-hint, .privacy-note) :is(p, small, strong) {
+  color: var(--md-sys-color-on-secondary-container);
+}
+/* Dark family tones keep links/text actions readable on the stronger containers. */
+html[data-design='md3']
+  :is(.recipient-field, .route-preview, .scope-note, .info-strip, .empty)
+  :is(a:not(.button), .text-button) {
+  --md-button-ink: var(--md-sys-color-on-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+html[data-design='md3']
+  :is(.system-box, .panel-hint, .privacy-note, .emerging-group)
+  :is(a:not(.button), .text-button) {
+  --md-button-ink: var(--md-sys-color-on-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+html[data-design='md3']
+  :is(.action-needed, .inline-attention, .confirmation)
+  :is(a:not(.button), .text-button) {
+  --md-button-ink: var(--md-sys-color-on-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 html[data-design='md3'] .toast {
   min-height: 48px;
@@ -1075,12 +1248,11 @@ html[data-design='md3']
   ) {
   color: var(--md-sys-color-on-surface-variant);
 }
-html[data-design='md3']
-  :is(.funnel-step, .health-row, .attention-item, .small-problem, .small-problems) {
+html[data-design='md3'] :is(.funnel-step, .health-row, .small-problem, .small-problems) {
   border-color: var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-small);
 }
-html[data-design='md3'] :is(.funnel-step, .attention-item, .small-problem):hover {
+html[data-design='md3'] :is(.funnel-step, .small-problem):hover {
   background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
 }
 html[data-design='md3'] :is(.funnel-label, .health-row > span, .small-problem > span) {
@@ -1236,14 +1408,15 @@ html[data-design='md3'] .small-problems:focus {
   }
 }
 @media print {
-  html[data-design='md3'] {
-    background: white;
+  html[data-design='md3'],
+  html[data-design='md3'] body {
+    background: var(--md-sys-color-surface-container-lowest);
   }
   html[data-design='md3'] .app-content {
     margin-left: 0;
   }
   html[data-design='md3'] :is(.panel, .metric-card) {
-    background: white;
+    background: var(--md-sys-color-surface-container-lowest);
     box-shadow: none;
   }
   html[data-design='md3'] .design-toggle {
