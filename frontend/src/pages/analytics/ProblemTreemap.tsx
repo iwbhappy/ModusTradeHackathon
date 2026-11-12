@@ -1,10 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Map, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import type { Analytics, AnalyticsFilters } from '../../types';
 import { number } from '../../lib/format';
 import { ChartPanel } from './ChartPanel';
 
-type Cluster = Analytics['clusterStats'][number];
+type Cluster = Analytics['clusterStats'][number] & { grouped?: boolean };
+
+function textLines(
+  text: string,
+  width: number,
+  fontSize: number,
+  context: CanvasRenderingContext2D | null,
+) {
+  if (context) context.font = `600 ${fontSize}px "Golos Text"`;
+  const measure = (value: string) =>
+    context?.measureText(value).width ?? value.length * fontSize * 0.65;
+  let line = '',
+    lines = 1;
+  for (const word of text.split(/\s+/)) {
+    if (measure(word) > width) return Infinity;
+    const next = line ? `${line} ${word}` : word;
+    if (measure(next) <= width) line = next;
+    else {
+      lines++;
+      line = word;
+    }
+  }
+  return lines;
+}
+
+function content(
+  cluster: Cluster,
+  width: number,
+  height: number,
+  context: CanvasRenderingContext2D | null,
+) {
+  const roomy = width >= 160 && height >= 96;
+  const padding = roomy ? 10 : 4;
+  const availableWidth = width - padding * 2 - 2;
+  const titleHeight =
+    textLines(cluster.title, availableWidth, roomy ? 14 : 12, context) * (roomy ? 18 : 16);
+  const baseHeight = padding * 2 + titleHeight + 4 + (roomy ? 27.5 : 20);
+  const details = cluster.grouped
+    ? 'чел.-ч/мес'
+    : `чел.-ч/мес · ${cluster.trend > 0 ? '+' : ''}${cluster.trend} обращений`;
+  const showDetails =
+    baseHeight + 4 + textLines(details, availableWidth, 12, context) * 16 <= height;
+  return {
+    fits: width >= 120 && height >= 64 && baseHeight <= height && (!cluster.grouped || showDetails),
+    showDetails,
+    details,
+  };
+}
 function layout(
   items: Cluster[],
   x = 0,
@@ -38,11 +85,74 @@ export function ProblemTreemap({
   show: (title: string, filters: AnalyticsFilters) => void;
 }) {
   const [hint, setHint] = useState('');
-  const boxes = layout(
-    [...data.clusterStats]
+  const map = useRef<HTMLDivElement>(null);
+  const smallList = useRef<HTMLElement>(null);
+  const listId = useId();
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [fontVersion, setFontVersion] = useState(0);
+  const context = useMemo(() => document.createElement('canvas').getContext('2d'), []);
+  useEffect(() => {
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width > 0 && height > 0)
+        setSize((old) => (old.width === width && old.height === height ? old : { width, height }));
+    });
+    if (map.current) observer.observe(map.current);
+    let live = true;
+    const fontsLoaded = () => {
+      if (live) setFontVersion((version) => version + 1);
+    };
+    void document.fonts.ready.then(fontsLoaded);
+    document.fonts.addEventListener('loadingdone', fontsLoaded);
+    return () => {
+      live = false;
+      observer.disconnect();
+      document.fonts.removeEventListener('loadingdone', fontsLoaded);
+    };
+  }, []);
+  const { boxes, small } = useMemo(() => {
+    let visible: Cluster[] = [...data.clusterStats]
       .filter((c) => c.monthlyCost > 0)
-      .sort((a, b) => b.monthlyCost - a.monthlyCost || a.id.localeCompare(b.id)),
-  );
+      .sort((a, b) => b.monthlyCost - a.monthlyCost || a.id.localeCompare(b.id));
+    const small: Cluster[] = [];
+    let includeGroup = true;
+    while (true) {
+      const group: Cluster[] =
+        includeGroup && small.length
+          ? [
+              {
+                ...small[0],
+                grouped: true,
+                id: '__small-problems__',
+                title: `Ещё ${small.length} ${small.length % 10 === 1 && small.length % 100 !== 11 ? 'проблема' : small.length % 10 >= 2 && small.length % 10 <= 4 && (small.length % 100 < 12 || small.length % 100 > 14) ? 'проблемы' : 'проблем'}`,
+                monthlyCost: small.reduce((sum, c) => sum + c.monthlyCost, 0),
+                trend: 0,
+              },
+            ]
+          : [];
+      const boxes = layout([...visible, ...group], 0, 0, size.width, size.height);
+      const hidden = boxes.filter(
+        (box) =>
+          !box.cluster.grouped &&
+          !content(box.cluster, box.width - 2, box.height - 2, context).fits,
+      );
+      if (!hidden.length) {
+        const aggregate = boxes.find((box) => box.cluster.grouped);
+        const fitsAggregate =
+          !aggregate ||
+          content(aggregate.cluster, aggregate.width - 2, aggregate.height - 2, context).fits;
+        if (!fitsAggregate) {
+          includeGroup = false;
+          continue;
+        }
+        return { boxes, small };
+      }
+      const hiddenIds = new Set(hidden.map((box) => box.cluster.id));
+      small.push(...visible.filter((cluster) => hiddenIds.has(cluster.id)));
+      visible = visible.filter((cluster) => !hiddenIds.has(cluster.id));
+      includeGroup = true;
+    }
+  }, [data.clusterStats, size, context, fontVersion]);
   return (
     <ChartPanel
       title="Карта повторяющихся проблем"
@@ -91,27 +201,53 @@ export function ProblemTreemap({
             Без изменений
           </span>
         </div>
-        <div className="treemap" aria-label="Площадь — оценка потерь, цвет — тренд обращений">
-          {!boxes.length && <p className="all-clear">Нет оценок потерь для построения карты</p>}
+        <div
+          ref={map}
+          className="treemap"
+          aria-label="Площадь — оценка потерь, цвет — тренд обращений"
+        >
+          {!boxes.length && (
+            <p className="all-clear">
+              {small.length
+                ? 'Небольшие проблемы перечислены под картой'
+                : 'Нет оценок потерь для построения карты'}
+            </p>
+          )}
           {boxes.map(({ cluster, x, y, width, height }) => {
-            const text = `${cluster.title}: ≈ ${number(cluster.monthlyCost)} чел.-ч/мес; тренд ${cluster.trend > 0 ? '+' : ''}${cluster.trend}`;
+            const text = cluster.grouped
+              ? `${cluster.title} · ${number(cluster.monthlyCost)} чел.-ч/мес. Перейти к списку небольших проблем`
+              : `${cluster.title}: ≈ ${number(cluster.monthlyCost)} чел.-ч/мес; тренд ${cluster.trend > 0 ? '+' : ''}${cluster.trend}`;
+            const { showDetails, details } = content(cluster, width - 2, height - 2, context);
             return (
               <button
                 key={cluster.id}
                 title={text}
                 aria-label={text}
+                aria-controls={cluster.grouped ? listId : undefined}
                 className={`treemap-cell ${cluster.trend > 0 ? 'growing' : cluster.trend < 0 ? 'declining' : 'steady'}`}
                 style={{
-                  left: `calc(${x}% + 1px)`,
-                  top: `calc(${y}% + 1px)`,
-                  width: `max(0px, calc(${width}% - 2px))`,
-                  height: `max(0px, calc(${height}% - 2px))`,
+                  left: x + 1,
+                  top: y + 1,
+                  width: Math.max(0, width - 2),
+                  height: Math.max(0, height - 2),
                 }}
                 onMouseEnter={() => setHint(text)}
                 onMouseLeave={() => setHint('')}
                 onFocus={() => setHint(text)}
                 onBlur={() => setHint('')}
-                onClick={() => show(cluster.title, { cluster: cluster.id })}
+                onClick={() => {
+                  if (!cluster.grouped) {
+                    show(cluster.title, { cluster: cluster.id });
+                    return;
+                  }
+                  smallList.current?.scrollIntoView({
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                      ? 'auto'
+                      : 'smooth',
+                    block: 'nearest',
+                  });
+                  smallList.current?.focus({ preventScroll: true });
+                }}
               >
                 <div className="treemap-content" aria-hidden="true">
                   <span className="treemap-title">{cluster.title}</span>
@@ -123,15 +259,58 @@ export function ProblemTreemap({
                   >
                     {number(cluster.monthlyCost)}
                   </strong>
-                  <small>
-                    чел.-ч/мес · {cluster.trend > 0 ? '+' : ''}
-                    {cluster.trend} обращений
-                  </small>
+                  {showDetails && <small>{details}</small>}
                 </div>
               </button>
             );
           })}
         </div>
+        {!!small.length && (
+          <section
+            ref={smallList}
+            id={listId}
+            tabIndex={-1}
+            className="small-problems"
+            aria-label="Небольшие проблемы"
+          >
+            <h3>Небольшие проблемы</h3>
+            {small.map((cluster) => {
+              const Icon =
+                cluster.trend > 0 ? TrendingUp : cluster.trend < 0 ? TrendingDown : Minus;
+              return (
+                <button
+                  key={cluster.id}
+                  className="small-problem"
+                  onClick={() => show(cluster.title, { cluster: cluster.id })}
+                >
+                  <Icon
+                    size={16}
+                    className={
+                      cluster.trend > 0
+                        ? 'trend-up'
+                        : cluster.trend < 0
+                          ? 'trend-down'
+                          : 'trend-flat'
+                    }
+                    aria-label={
+                      cluster.trend > 0
+                        ? 'Рост обращений'
+                        : cluster.trend < 0
+                          ? 'Снижение обращений'
+                          : 'Без изменений'
+                    }
+                  />
+                  <span>{cluster.title}</span>
+                  <strong className="mono">≈ {number(cluster.monthlyCost)} чел.-ч/мес</strong>
+                  <small>
+                    {cluster.count} обращений · тренд {cluster.trend > 0 ? '+' : ''}
+                    {cluster.trend} обращений
+                  </small>
+                </button>
+              );
+            })}
+          </section>
+        )}
         <p className="viz-caption" role="status">
           {hint ||
             'Площадь — оценка месячных потерь. Тренд сравнивает последние 30 дней с предыдущими 30. Нажмите на проблему.'}

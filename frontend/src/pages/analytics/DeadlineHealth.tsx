@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock3 } from 'lucide-react';
 import type { Analytics, AnalyticsFilters } from '../../types';
 import { ChartPanel } from './ChartPanel';
+import { ChartTooltip } from './ChartTooltip';
 
 const series = [
   { key: 'onTime' as const, label: 'В срок', icon: CheckCircle2 },
-  { key: 'soon' as const, label: 'Скоро срок', icon: Clock3 },
+  { key: 'soon' as const, label: 'Скоро срок (≤ 3 раб. дня)', icon: Clock3 },
   { key: 'overdue' as const, label: 'Просрочено', icon: AlertTriangle },
 ];
 export function DeadlineHealth({
@@ -15,7 +16,8 @@ export function DeadlineHealth({
   data: Analytics;
   show: (title: string, filters: AnalyticsFilters) => void;
 }) {
-  const [hint, setHint] = useState('');
+  const [hint, setHint] = useState<{ anchor: Element; text: string } | null>(null);
+  const tooltipId = useId();
   const maximum = Math.max(
     1,
     ...data.deadlineHealth.map((row) => row.onTime + row.soon + row.overdue),
@@ -61,6 +63,7 @@ export function DeadlineHealth({
         <div className="chart-legend">
           {series.map(({ key, label, icon: Icon }) => (
             <span key={key} className={`legend-${key}`}>
+              <i className={`health-swatch health-${key}`} aria-hidden="true" />
               <Icon size={14} />
               {label}
             </span>
@@ -83,18 +86,29 @@ export function DeadlineHealth({
                   {series
                     .filter((s) => row[s.key])
                     .map((s) => {
-                      const text = `${row.department} · ${s.label}: ${row[s.key]}`;
+                      const count = row[s.key];
+                      const unit =
+                        count % 10 === 1 && count % 100 !== 11
+                          ? 'обращение'
+                          : count % 10 >= 2 &&
+                              count % 10 <= 4 &&
+                              (count % 100 < 12 || count % 100 > 14)
+                            ? 'обращения'
+                            : 'обращений';
+                      const text = `${row.department} · ${s.label}: ${count} ${unit}. Нажмите, чтобы открыть`;
                       return (
                         <button
                           className={`health-segment health-${s.key}`}
                           style={{ flex: row[s.key] }}
                           key={s.key}
-                          title={text}
                           aria-label={text}
-                          onMouseEnter={() => setHint(text)}
-                          onMouseLeave={() => setHint('')}
-                          onFocus={() => setHint(text)}
-                          onBlur={() => setHint('')}
+                          aria-describedby={hint?.text === text ? tooltipId : undefined}
+                          onMouseEnter={(event) => setHint({ anchor: event.currentTarget, text })}
+                          onMouseLeave={(event) => {
+                            if (document.activeElement !== event.currentTarget) setHint(null);
+                          }}
+                          onFocus={(event) => setHint({ anchor: event.currentTarget, text })}
+                          onBlur={() => setHint(null)}
                           onClick={() => open(row.department, s.key, s.label)}
                         >
                           <span>{row[s.key]}</span>
@@ -112,9 +126,14 @@ export function DeadlineHealth({
           <span>{maximum} обращений</span>
         </div>
         <p className="viz-caption" role="status">
-          {hint ||
-            'Скоро срок — не более 3 рабочих дней. Сортировка по просроченным. Нажмите на сегмент.'}
+          Сортировка по просроченным. Нажмите на сегмент, чтобы открыть обращения.
         </p>
+        <ChartTooltip
+          anchor={hint?.anchor ?? null}
+          text={hint?.text ?? ''}
+          id={tooltipId}
+          onDismiss={() => setHint(null)}
+        />
       </div>
     </ChartPanel>
   );

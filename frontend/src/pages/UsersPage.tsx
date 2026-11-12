@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Info, ShieldCheck, Users } from 'lucide-react';
 import { setVacation } from '../api';
 import { useApp } from '../store';
 
@@ -26,6 +26,14 @@ export function UsersPage() {
         title="Пользователи и роли"
         subtitle="Демонстрационные пользователи обозначены ролями и подразделениями"
       />
+      <div className="scope-note">
+        <Info size={18} aria-hidden="true" />
+        <p>
+          Сотрудники и подразделения приходят из оргструктуры компании (в пилоте — синхронизация с
+          Битрикс24), поэтому вручную не добавляются и не удаляются. Здесь можно отметить отпуск
+          ответственного; замещения на время отпуска задаются в правилах назначения.
+        </p>
+      </div>
       <Panel title="Матрица доступа" aside={<ShieldCheck size={17} />}>
         <div className="access-grid">
           {[

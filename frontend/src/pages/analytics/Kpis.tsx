@@ -3,7 +3,8 @@ import { Table2, TrendingUp } from 'lucide-react';
 import type { Analytics, AnalyticsFilters, MetricKey } from '../../types';
 import { date, number } from '../../lib/format';
 import { Delta, metricLabels } from '../../components/MetricCards';
-import { onChartKey } from './ChartPanel';
+import { KpiSparkline, shortDate } from './KpiSparkline';
+import { businessDate } from '../../lib/period-data';
 
 export function Kpis({
   data,
@@ -14,6 +15,12 @@ export function Kpis({
 }) {
   const [tableMode, setTableMode] = useState(false);
   const event = (key: MetricKey) => (key === 'savedHours' ? ('implemented' as const) : key);
+  const firstWeek = data.weekly[0],
+    lastWeek = data.weekly[data.weekly.length - 1];
+  const lastDate =
+    lastWeek && (lastWeek.toDate > businessDate() ? businessDate() : lastWeek.toDate);
+  const crossYear =
+    firstWeek && lastDate && firstWeek.fromDate.slice(0, 4) !== lastDate.slice(0, 4);
   return (
     <section className="analytics-kpis" aria-labelledby="kpi-title">
       <div className="between">
@@ -88,10 +95,7 @@ export function Kpis({
       ) : (
         <div className="report-kpis">
           {(Object.keys(metricLabels) as MetricKey[]).map((key) => {
-            const metric = data.metrics[key],
-              maximum = Math.max(1, ...metric.series);
-            const x = (index: number) => 8 + (index * 144) / Math.max(1, metric.series.length - 1),
-              y = (value: number) => 40 - (value / maximum) * 30;
+            const metric = data.metrics[key];
             return (
               <div className={`metric-card metric-${key}`} key={key}>
                 <span className="metric-label">{metricLabels[key]}</span>
@@ -107,58 +111,23 @@ export function Kpis({
                   <strong className="metric-value">{number(metric.value)}</strong>
                 </button>
                 <Delta metric={metric} neutral={key === 'incoming'} />
-                <svg
-                  className="kpi-sparkline"
-                  viewBox="0 0 160 48"
-                  width="160"
-                  height="48"
-                  aria-label={`${metricLabels[key]}, последние 10 недель`}
-                >
-                  <polyline
-                    points={metric.series
-                      .map((value, index) => `${x(index)},${y(value)}`)
-                      .join(' ')}
-                    fill="none"
-                    stroke={key === 'savedHours' ? '#17803D' : '#2A78D6'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {metric.series.map((value, index) => (
-                    <circle
-                      key={index}
-                      cx={x(index)}
-                      cy={y(value)}
-                      r="5"
-                      fill="transparent"
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`${date(data.weekly[index].fromDate)}: ${number(value)}`}
-                      onClick={() =>
-                        show(`${metricLabels[key]} · ${date(data.weekly[index].fromDate)}`, {
-                          event: event(key),
-                          fromDate: data.weekly[index].fromDate,
-                          toDate: data.weekly[index].toDate,
-                        })
-                      }
-                      onKeyDown={(e) =>
-                        onChartKey(e, () =>
-                          show(metricLabels[key], {
-                            event: event(key),
-                            fromDate: data.weekly[index].fromDate,
-                            toDate: data.weekly[index].toDate,
-                          }),
-                        )
-                      }
-                    >
-                      <title>
-                        {date(data.weekly[index].fromDate)}: {number(value)}
-                      </title>
-                    </circle>
-                  ))}
-                </svg>
+                <KpiSparkline
+                  metricKey={key}
+                  values={metric.series}
+                  weeks={data.weekly}
+                  onOpen={(index) =>
+                    show(`${metricLabels[key]} · ${date(data.weekly[index].fromDate)}`, {
+                      event: event(key),
+                      fromDate: data.weekly[index].fromDate,
+                      toDate: data.weekly[index].toDate,
+                    })
+                  }
+                />
                 <small>
-                  10 недель{metric.previous !== 0 && ` · ранее ${number(metric.previous)}`}
+                  {firstWeek && lastDate
+                    ? `${data.weekly.length} недель: ${crossYear ? date(firstWeek.fromDate) : shortDate(firstWeek.fromDate)} – ${crossYear ? date(lastDate) : shortDate(lastDate)}`
+                    : 'Нет недельных данных'}
+                  {metric.previous !== 0 && ` · ранее ${number(metric.previous)}`}
                 </small>
               </div>
             );
