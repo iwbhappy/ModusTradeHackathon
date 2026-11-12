@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronsUpDown, Search } from 'lucide-react';
 import { useApp } from '../../store';
 import { Notifications } from './Notifications';
+import { DesignToggle } from '../../themes/design';
 
 import type { Role } from '../../types';
 export function Header({ home }: { home: string }) {
@@ -70,6 +71,7 @@ export function Header({ home }: { home: string }) {
         </select>
       </div>
       <Notifications key={userId} />
+      <DesignToggle />
       <div className="user-select">
         <span className="avatar">
           {current.role === 'Администратор' ? 'АС' : current.department.slice(0, 2).toUpperCase()}

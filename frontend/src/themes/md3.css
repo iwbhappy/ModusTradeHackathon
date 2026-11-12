@@ -1,0 +1,1252 @@
+/* Material Color Utilities 0.3.0: SchemeTonalSpot, #1D5FD1, light, contrast 0 (MD3 2021). */
+html[data-design='md3'] {
+  --md-sys-color-primary: #475d92;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d9e2ff;
+  --md-sys-color-on-primary-container: #2f4578;
+  --md-sys-color-secondary: #585e71;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #dce2f9;
+  --md-sys-color-on-secondary-container: #404659;
+  --md-sys-color-tertiary: #725572;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #fdd7fa;
+  --md-sys-color-on-tertiary-container: #593d59;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+  --md-sys-color-background: #faf8ff;
+  --md-sys-color-on-background: #1a1b21;
+  --md-sys-color-surface: #faf8ff;
+  --md-sys-color-on-surface: #1a1b21;
+  --md-sys-color-surface-variant: #e1e2ec;
+  --md-sys-color-on-surface-variant: #44464f;
+  --md-sys-color-surface-dim: #dad9e0;
+  --md-sys-color-surface-bright: #faf8ff;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f4f3fa;
+  --md-sys-color-surface-container: #eeedf4;
+  --md-sys-color-surface-container-high: #e8e7ef;
+  --md-sys-color-surface-container-highest: #e2e2e9;
+  --md-sys-color-outline: #757780;
+  --md-sys-color-outline-variant: #c5c6d0;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-surface-tint: #475d92;
+  --md-sys-color-inverse-surface: #2f3036;
+  --md-sys-color-inverse-on-surface: #f1f0f7;
+  --md-sys-color-inverse-primary: #b1c5ff;
+  --md-sys-color-primary-fixed: #d9e2ff;
+  --md-sys-color-primary-fixed-dim: #b1c5ff;
+  --md-sys-color-on-primary-fixed: #001946;
+  --md-sys-color-on-primary-fixed-variant: #2f4578;
+  --md-sys-color-secondary-fixed: #dce2f9;
+  --md-sys-color-secondary-fixed-dim: #c0c6dc;
+  --md-sys-color-on-secondary-fixed: #151b2c;
+  --md-sys-color-on-secondary-fixed-variant: #404659;
+  --md-sys-color-tertiary-fixed: #fdd7fa;
+  --md-sys-color-tertiary-fixed-dim: #e0bbdd;
+  --md-sys-color-on-tertiary-fixed: #2a122c;
+  --md-sys-color-on-tertiary-fixed-variant: #593d59;
+  --md-status-review-container: #98f0fb;
+  --md-status-on-review-container: #004f56;
+  --md-status-work-container: #dee1ff;
+  --md-status-on-work-container: #273d9d;
+  --md-status-done-container: #96f8a6;
+  --md-status-on-done-container: #005322;
+  --md-status-closed-container: #bdeec9;
+  --md-status-on-closed-container: #234f34;
+  --md-status-warning-container: #ffdcbd;
+  --md-status-on-warning-container: #693c00;
+  --md-status-returned-container: #ffdbcf;
+  --md-status-on-returned-container: #822700;
+
+  --md-sys-typescale-display-large: 400 57px/64px 'Roboto', sans-serif;
+  --md-sys-typescale-display-medium: 400 45px/52px 'Roboto', sans-serif;
+  --md-sys-typescale-display-small: 400 36px/44px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-large: 400 32px/40px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-medium: 400 28px/36px 'Roboto', sans-serif;
+  --md-sys-typescale-headline-small: 400 24px/32px 'Roboto', sans-serif;
+  --md-sys-typescale-title-large: 400 22px/28px 'Roboto', sans-serif;
+  --md-sys-typescale-title-medium: 500 16px/24px 'Roboto', sans-serif;
+  --md-sys-typescale-title-small: 500 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-body-large: 400 16px/24px 'Roboto', sans-serif;
+  --md-sys-typescale-body-medium: 400 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-body-small: 400 12px/16px 'Roboto', sans-serif;
+  --md-sys-typescale-label-large: 500 14px/20px 'Roboto', sans-serif;
+  --md-sys-typescale-label-medium: 500 12px/16px 'Roboto', sans-serif;
+  --md-sys-typescale-label-small: 500 11px/16px 'Roboto', sans-serif;
+  --md-sys-typescale-body-large-tracking: 0.5px;
+  --md-sys-typescale-body-medium-tracking: 0.25px;
+  --md-sys-typescale-label-large-tracking: 0.1px;
+  --md-sys-typescale-label-medium-tracking: 0.5px;
+
+  --md-sys-shape-extra-small: 4px;
+  --md-sys-shape-small: 8px;
+  --md-sys-shape-medium: 12px;
+  --md-sys-shape-large: 16px;
+  --md-sys-shape-extra-large: 28px;
+  --md-sys-shape-full: 9999px;
+  --md-sys-state-hover-opacity: 8%;
+  --md-sys-state-focus-opacity: 10%;
+  --md-sys-state-pressed-opacity: 10%;
+  --md-sys-elevation-0: 0 0 0 transparent;
+  --md-sys-elevation-1: 0 1px 2px #00000030, 0 1px 3px 1px #00000015;
+  --md-sys-elevation-2: 0 1px 2px #00000030, 0 2px 6px 2px #00000015;
+  --md-sys-elevation-3: 0 1px 3px #00000030, 0 4px 8px 3px #00000015;
+
+  /* Bridge existing semantic variables without changing their classic definitions. */
+  --canvas: var(--md-sys-color-surface);
+  --surface: var(--md-sys-color-surface-container-lowest);
+  --line: var(--md-sys-color-outline-variant);
+  --ink: var(--md-sys-color-on-surface);
+  --secondary: var(--md-sys-color-on-surface-variant);
+  --muted: var(--md-sys-color-on-surface-variant);
+  --action: var(--md-sys-color-primary);
+  --panel-shadow: var(--md-sys-elevation-1);
+  --md-field-surface: var(--md-sys-color-surface-container-low);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
+  color-scheme: light;
+}
+
+/* Typography. Graph geometry and categorical colors remain owned by the charts. */
+html[data-design='md3'] body {
+  font: inherit;
+  color: inherit;
+  background: var(--md-sys-color-surface);
+}
+html[data-design='md3'] :is(h1, .page-title h1) {
+  font: var(--md-sys-typescale-headline-large);
+  letter-spacing: 0;
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(h2, .report-heading h2) {
+  font: var(--md-sys-typescale-title-large);
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(h3, .section-heading, .improvement-card h2, .recipient-field > h3) {
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: 0.15px;
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(b, strong) {
+  font-weight: 500;
+}
+html[data-design='md3'] :is(.small, .page-title p, .access-grid p, .scope-note p, .info-strip p) {
+  font: var(--md-sys-typescale-body-medium);
+}
+html[data-design='md3']
+  :is(
+    small,
+    .quiet-label,
+    .eyebrow,
+    .ticket-meta,
+    .data-note,
+    .viz-caption,
+    .viz-axis-label,
+    .breadcrumb,
+    .footer,
+    .table-footer,
+    .table-toolbar,
+    .analytics-note,
+    .report-heading > span,
+    .tracking small,
+    .event-history time
+  ) {
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: 0.4px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] :is(.muted, .steel, .meta-list dt, .person-cell small, .event-cell small) {
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] :is(.metric-delta > span, .metric-delta.no-data) {
+  font-family: 'Roboto', sans-serif;
+}
+html[data-design='md3']
+  :is(.mono, .numeric, .metric-value, .cost-result strong, .kpi strong, .cost-number strong) {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+html[data-design='md3'] .metric-value {
+  color: var(--md-sys-color-on-surface);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 44px;
+}
+html[data-design='md3'] a {
+  color: var(--md-sys-color-primary);
+}
+html[data-design='md3'] :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+}
+
+/* Drawer and top app bar. */
+html[data-design='md3'] .sidebar {
+  width: 240px;
+  padding: 24px 12px 20px;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+  border-right: 0;
+}
+html[data-design='md3'] .app-content {
+  margin-left: 240px;
+}
+html[data-design='md3'] .brand {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+html[data-design='md3'] .brand-mark {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-radius: var(--md-sys-shape-large);
+}
+html[data-design='md3']
+  :is(
+    .sidebar .brand small,
+    .sidebar .workspace-label,
+    .sidebar .version,
+    .sidebar .security-note,
+    .sidebar .security-note small,
+    .sidebar-bottom > button
+  ) {
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] .sidebar nav a {
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--md-sys-shape-full);
+  font: var(--md-sys-typescale-label-large);
+  color: var(--md-sys-color-on-surface-variant);
+  background: transparent;
+  text-decoration: none;
+  transition: background-color 200ms;
+}
+html[data-design='md3'] .sidebar nav a:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+html[data-design='md3'] .sidebar nav a.active {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+html[data-design='md3'] .sidebar nav a.active:hover {
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-on-secondary-container) 8%,
+    var(--md-sys-color-secondary-container)
+  );
+}
+html[data-design='md3'] .sidebar nav a:active {
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-on-secondary-container) 10%,
+    var(--md-sys-color-secondary-container)
+  );
+}
+html[data-design='md3'] .sidebar nav a:focus-visible {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent);
+}
+html[data-design='md3'] .sidebar nav a.active:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-on-secondary-container) 10%,
+    var(--md-sys-color-secondary-container)
+  );
+}
+html[data-design='md3'] .topbar {
+  min-height: 72px;
+  border: 0;
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--md-sys-elevation-0);
+  gap: 16px;
+}
+html[data-design='md3'] .global-search {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] .global-search input {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  box-shadow: none;
+  min-height: 48px;
+}
+html[data-design='md3'] .global-search kbd {
+  border-color: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] .demo-role {
+  border: 0;
+  padding-left: 0;
+}
+html[data-design='md3'] .avatar {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  font: var(--md-sys-typescale-label-medium);
+}
+
+/* Existing actions: outlined by default, filled/tonal/text by meaning.
+   Data marks are excluded so their validated chart palette is never overwritten. */
+html[data-design='md3']
+  :is(button, .button):not(
+    :where(
+      .health-segment,
+      .treemap-cell,
+      .funnel-step,
+      .metric-value-action,
+      .attention-item,
+      .small-problem,
+      .heatmap button
+    )
+  ) {
+  --md-button-container: transparent;
+  --md-button-ink: var(--md-sys-color-primary);
+  min-height: 40px;
+  padding: 10px 24px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  box-shadow: var(--md-sys-elevation-0);
+  text-decoration: none;
+  transition:
+    background-color 200ms,
+    box-shadow 200ms,
+    border-color 200ms;
+}
+html[data-design='md3'] :is(button.primary, .button.primary, .compose-form .form-footer .primary) {
+  --md-button-container: var(--md-sys-color-primary);
+  --md-button-ink: var(--md-sys-color-on-primary);
+  border-color: transparent;
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+  font: var(--md-sys-typescale-label-large);
+}
+html[data-design='md3']
+  :is(
+    .structure-button button,
+    .chart-view-toggle,
+    .recipient-field .button-row button,
+    .system-box .button-row button
+  ) {
+  --md-button-container: var(--md-sys-color-secondary-container);
+  --md-button-ink: var(--md-sys-color-on-secondary-container);
+  border-color: transparent;
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+}
+html[data-design='md3'] :is(.text-button, button.text-button, .back-link) {
+  --md-button-container: transparent;
+  --md-button-ink: var(--md-sys-color-primary);
+  min-height: 40px;
+  border: 0;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-full);
+  background: transparent;
+  color: var(--md-button-ink);
+  font: var(--md-sys-typescale-label-large);
+}
+html[data-design='md3'] .icon-button {
+  --md-button-container: transparent;
+  --md-button-ink: var(--md-sys-color-on-surface-variant);
+  position: relative;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--md-sys-shape-full);
+  background: transparent;
+  color: var(--md-button-ink);
+}
+html[data-design='md3'] .design-toggle[aria-pressed='true'] {
+  --md-button-container: var(--md-sys-color-secondary-container);
+  --md-button-ink: var(--md-sys-color-on-secondary-container);
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+}
+html[data-design='md3']
+  :is(button, .button):not(
+    :where(
+      .health-segment,
+      .treemap-cell,
+      .funnel-step,
+      .metric-value-action,
+      .attention-item,
+      .small-problem,
+      .heatmap button
+    )
+  ):hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--md-button-ink) var(--md-sys-state-hover-opacity),
+    var(--md-button-container)
+  );
+}
+html[data-design='md3']
+  :is(button, .button):not(
+    :where(
+      .health-segment,
+      .treemap-cell,
+      .funnel-step,
+      .metric-value-action,
+      .attention-item,
+      .small-problem,
+      .heatmap button
+    )
+  ):is(:focus-visible, :active):not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--md-button-ink) var(--md-sys-state-pressed-opacity),
+    var(--md-button-container)
+  );
+}
+html[data-design='md3'] :is(button.primary, .button.primary):hover:not(:disabled) {
+  box-shadow: var(--md-sys-elevation-1);
+}
+html[data-design='md3']
+  :is(button, .button):disabled[disabled]:not(
+    :where(
+      .health-segment,
+      .treemap-cell,
+      .funnel-step,
+      .metric-value-action,
+      .attention-item,
+      .small-problem,
+      .heatmap button
+    )
+  ) {
+  --md-button-container: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+  --md-button-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+  border-color: transparent;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* Segmented buttons and primary tabs. */
+html[data-design='md3'] :is(.segmented, .period-selector .segmented) {
+  padding: 0;
+  gap: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--md-sys-shape-full);
+}
+html[data-design='md3'] .segmented button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-right: 0;
+  border-radius: 0;
+}
+html[data-design='md3'] .segmented button:first-child {
+  border-radius: 100px 0 0 100px;
+}
+html[data-design='md3'] .segmented button:last-child {
+  border-right: 1px solid var(--md-sys-color-outline);
+  border-radius: 0 100px 100px 0;
+}
+html[data-design='md3'] .segmented button:only-child {
+  border-radius: var(--md-sys-shape-full);
+}
+html[data-design='md3'] .segmented button.selected {
+  --md-button-container: var(--md-sys-color-secondary-container);
+  --md-button-ink: var(--md-sys-color-on-secondary-container);
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+  border-color: var(--md-sys-color-outline);
+}
+html[data-design='md3'] .segmented button.selected::before {
+  content: '';
+  width: 12px;
+  height: 7px;
+  flex: 0 0 12px;
+  margin-right: 3px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(-45deg);
+}
+html[data-design='md3'] .segmented button.selected + button {
+  border-left-color: var(--md-sys-color-outline);
+}
+html[data-design='md3'] .list-tabs {
+  background: var(--md-sys-color-surface);
+  border-color: var(--md-sys-color-outline-variant);
+}
+html[data-design='md3'] .list-tabs button {
+  --md-button-ink: var(--md-sys-color-on-surface-variant);
+  position: relative;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--md-button-ink);
+}
+html[data-design='md3'] .list-tabs button.active {
+  --md-button-ink: var(--md-sys-color-primary);
+  border-color: transparent;
+  color: var(--md-sys-color-primary);
+}
+html[data-design='md3'] .list-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  background: var(--md-sys-color-primary);
+  border-radius: 3px 3px 0 0;
+}
+html[data-design='md3'] :is(.count, .list-tabs button span) {
+  padding: 2px 6px;
+  min-width: 20px;
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font: var(--md-sys-typescale-label-medium);
+}
+html[data-design='md3'] :is(.notification-count, .list-tabs button.amber-tab > span) {
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  border-radius: var(--md-sys-shape-full);
+  font: var(--md-sys-typescale-label-medium);
+  padding: 1px 5px;
+}
+html[data-design='md3'] .notification-count {
+  position: absolute;
+  right: 0;
+  top: 0;
+  min-width: 16px;
+}
+
+/* Filled/elevated cards and supporting surfaces. */
+html[data-design='md3'] :is(.panel, .metric-card, .kpi-row) {
+  background: var(--md-sys-color-surface-container-low);
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  box-shadow: var(--md-sys-elevation-1);
+}
+html[data-design='md3']
+  :is(.panel-heading, .panel-attention .panel-heading, .panel-result .panel-heading) {
+  padding: 20px 24px;
+  border-color: var(--md-sys-color-outline-variant);
+}
+html[data-design='md3'] .panel-heading h2 {
+  font: var(--md-sys-typescale-title-medium);
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(.panel-heading h2 > svg, .section-heading > svg) {
+  color: var(--md-sys-color-primary);
+}
+html[data-design='md3']
+  :is(
+    .panel-body,
+    .compose-form > .panel-body,
+    .detail-main .panel-body,
+    .detail-aside .panel-body
+  ) {
+  padding: 24px;
+}
+html[data-design='md3'] .metric-card {
+  padding: 24px;
+  gap: 12px;
+}
+html[data-design='md3'] .metric-label {
+  font: var(--md-sys-typescale-label-large);
+  text-transform: none;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3']
+  :is(
+    .system-box,
+    .cost-box,
+    .privacy-note,
+    .panel-hint,
+    .manager-summary,
+    .group-brief,
+    .routing-explanation,
+    .journal-integrity
+  ) {
+  background: var(--md-sys-color-surface-container);
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  color: var(--md-sys-color-on-surface);
+  --md-field-surface: var(--md-sys-color-surface-container);
+}
+html[data-design='md3'] :is(.recipient-field, .scope-note, .info-strip, .route-preview) {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  --md-field-surface: var(--md-sys-color-primary-container);
+}
+html[data-design='md3']
+  :is(
+    .recipient-field > h3,
+    .recipient-field .route-preview strong,
+    .route-preview > svg,
+    .info-strip strong,
+    .scope-note b
+  ) {
+  color: var(--md-sys-color-on-primary-container);
+}
+html[data-design='md3'] .recipient-field .route-preview {
+  background: transparent;
+}
+html[data-design='md3'] :is(.action-needed, .inline-attention, .confirmation) {
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  --md-field-surface: var(--md-sys-color-tertiary-container);
+}
+html[data-design='md3']
+  :is(
+    .action-needed .section-label,
+    .action-needed .section-label svg,
+    .action-needed-items strong,
+    .inline-attention svg
+  ) {
+  color: var(--md-sys-color-on-tertiary-container);
+}
+html[data-design='md3'] :is(.done-intro, .before-after > div:last-child) {
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  background: var(--md-status-done-container);
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3']
+  :is(.success-line, .improvement-card h2 svg, .all-clear, .done-intro strong) {
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3']
+  :is(.table-footer, .table-toolbar, .form-footer, .tracking-summary, .improvement-footer) {
+  border-color: var(--md-sys-color-outline-variant);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3']
+  :is(
+    .similar-card,
+    .comment,
+    .participant,
+    .drill-list article,
+    .new-topic,
+    .emerging-group,
+    .assistant-history article,
+    .related-link
+  ) {
+  border-color: var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-small);
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(.group-counts b, .cluster-cost strong, .tickets-table .ticket-link) {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Outlined text fields. Existing wrapped labels form the floating outline notch. */
+html[data-design='md3'] :is(input, select, textarea) {
+  min-height: 56px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-extra-small);
+  padding: 15px 16px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  accent-color: var(--md-sys-color-primary);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+html[data-design='md3'] :is(input, select, textarea):hover:not(:disabled) {
+  border-color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(input, select, textarea):focus {
+  outline: 0;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+}
+html[data-design='md3'] :is(input, select, textarea):disabled {
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+}
+html[data-design='md3'] :is(input, textarea)::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 1;
+}
+html[data-design='md3'] :is(input[type='checkbox'], input[type='radio']) {
+  width: 20px;
+  min-height: 20px;
+  padding: 0;
+  flex: 0 0 20px;
+}
+html[data-design='md3'] .field {
+  position: relative;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+html[data-design='md3']
+  .field:has(> input:not([type='checkbox'], [type='radio']), > select, > textarea)
+  > span {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  z-index: 1;
+  max-width: calc(100% - 24px);
+  padding: 0 4px;
+  background: var(--md-field-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: 0.4px;
+  pointer-events: none;
+}
+html[data-design='md3'] .field:focus-within > span {
+  color: var(--md-sys-color-primary);
+}
+html[data-design='md3']
+  :is(
+    .filters select,
+    .demo-role select,
+    .user-select select,
+    .date-range input,
+    .table-toolbar select
+  ) {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-extra-small);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+}
+html[data-design='md3'] .search-field {
+  border-color: var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-full);
+  background: transparent;
+}
+html[data-design='md3'] .search-field:focus-within {
+  outline: 2px solid var(--md-sys-color-primary);
+}
+html[data-design='md3'] .search-field input {
+  min-height: 40px;
+  border: 0;
+  border-radius: inherit;
+  box-shadow: none;
+}
+html[data-design='md3'] select {
+  padding-right: 28px;
+}
+
+/* Complete the small supporting surfaces inherited from the classic stylesheet. */
+html[data-design='md3']
+  :is(
+    .cost-box p,
+    .cost-result,
+    .meta-list dd,
+    .comment-heading,
+    .comment-heading time,
+    .event-history p,
+    .cluster-cost span,
+    .related-link span,
+    .participant p,
+    .search-mode,
+    .emerging-summary span,
+    .journal-integrity .mono,
+    .privacy-note strong,
+    .outcome span
+  ) {
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3']
+  :is(
+    .cost-result strong,
+    .cost-number > span,
+    .event-history strong,
+    .outcome p,
+    .tracking-summary b,
+    .tracking-summary > div
+  ) {
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3']
+  :is(.recipient-field, .route-preview, .scope-note, .info-strip)
+  :is(p, small, strong) {
+  color: var(--md-sys-color-on-primary-container);
+}
+html[data-design='md3']
+  :is(.action-needed, .confirmation, .inline-attention)
+  :is(p, small, strong) {
+  color: var(--md-sys-color-on-tertiary-container);
+}
+html[data-design='md3'] .done-intro p {
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3'] :is(.cost-box, .confirmation, .privacy-note) {
+  padding: 16px;
+}
+html[data-design='md3'] .outcome {
+  border: 0;
+  border-radius: var(--md-sys-shape-small);
+  background: var(--md-sys-color-surface-container-high);
+}
+html[data-design='md3'] .emerging-group {
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  --md-field-surface: var(--md-sys-color-secondary-container);
+}
+html[data-design='md3']
+  :is(
+    .similar-group,
+    .join-form,
+    hr,
+    .footer,
+    .assistant-history article,
+    .health-chart > .viz-axis-label
+  ) {
+  border-color: var(--md-sys-color-outline-variant);
+}
+html[data-design='md3'] .tracking li > div {
+  background: var(--md-sys-color-surface-container-low);
+}
+html[data-design='md3'] :is(.track-circle, .history-dot) {
+  border-radius: var(--md-sys-shape-full);
+}
+
+/* Assist/filter chips and tonal status containers. */
+html[data-design='md3'] :is(.badge, .file-chip, .vacation-tag, .priority-high, .prototype-label) {
+  min-height: 28px;
+  border: 0;
+  border-radius: var(--md-sys-shape-small);
+  padding: 4px 8px;
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: 0.5px;
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] :is(.badge.status-new, .badge.blue) {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+html[data-design='md3'] .badge.status-review {
+  background: var(--md-status-review-container);
+  color: var(--md-status-on-review-container);
+}
+html[data-design='md3'] :is(.badge.status-clarify, .badge.attention, .vacation-tag) {
+  background: var(--md-status-warning-container);
+  color: var(--md-status-on-warning-container);
+}
+html[data-design='md3'] .badge.status-work {
+  background: var(--md-status-work-container);
+  color: var(--md-status-on-work-container);
+}
+html[data-design='md3'] :is(.badge.status-done, .badge.success) {
+  background: var(--md-status-done-container);
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3'] .badge.status-closed {
+  background: var(--md-status-closed-container);
+  color: var(--md-status-on-closed-container);
+}
+html[data-design='md3'] .badge.status-rejected {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] :is(.badge.status-returned, .priority-high) {
+  background: var(--md-status-returned-container);
+  color: var(--md-status-on-returned-container);
+}
+html[data-design='md3'] .badge.status-escalated {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+/* Data tables keep their horizontal scroll on small screens. */
+html[data-design='md3'] :is(table, thead, tbody, .table-wrap) {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(th, td) {
+  border-color: var(--md-sys-color-outline-variant);
+  font: var(--md-sys-typescale-body-medium);
+}
+html[data-design='md3'] th {
+  min-height: 56px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 500;
+  padding-block: 16px;
+}
+html[data-design='md3'] :is(.tickets-table tr.overdue-row td, tbody tr td) {
+  background: transparent;
+}
+html[data-design='md3'] tbody tr:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, var(--md-sys-color-surface));
+}
+html[data-design='md3'] .tickets-table tr.overdue-row td:first-child {
+  box-shadow: inset 3px 0 var(--md-sys-color-error);
+}
+html[data-design='md3']
+  :is(.overdue, .route-preview p.overdue, .tracking-late, .tracking li.late small) {
+  color: var(--md-sys-color-error);
+}
+html[data-design='md3'] .table-wrap .text-button {
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
+/* Timeline, switches, errors and empty states. */
+html[data-design='md3'] :is(.track-circle, .history-dot) {
+  border-color: var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] .tracking li.current .track-circle {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  box-shadow: 0 0 0 4px var(--md-sys-color-primary-container);
+}
+html[data-design='md3'] .tracking li.current strong {
+  font-weight: 500;
+  color: var(--md-sys-color-primary);
+}
+html[data-design='md3'] .tracking li.complete .track-circle {
+  border-color: var(--md-status-on-done-container);
+  background: var(--md-status-done-container);
+  color: var(--md-status-on-done-container);
+}
+html[data-design='md3'] .tracking li.late .track-circle {
+  border-color: var(--md-sys-color-error);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+html[data-design='md3']
+  :is(.tracking li:not(:last-child)::after, .event-history li:not(:last-child)::before) {
+  background: var(--md-sys-color-outline-variant);
+}
+html[data-design='md3'] .vacation-switch {
+  --md-button-ink: var(--md-sys-color-on-surface);
+  min-height: 48px;
+  padding: 8px;
+  border: 0;
+}
+html[data-design='md3'] .switch-track {
+  width: 52px;
+  height: 32px;
+  flex: 0 0 52px;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-sys-color-surface-container-highest);
+}
+html[data-design='md3'] .switch-track i {
+  width: 16px;
+  height: 16px;
+  left: 6px;
+  top: 6px;
+  border-radius: var(--md-sys-shape-full);
+  background: var(--md-sys-color-outline);
+  transition: transform 150ms;
+}
+html[data-design='md3'] .switch-track.on {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+html[data-design='md3'] .switch-track.on i {
+  width: 24px;
+  height: 24px;
+  top: 2px;
+  left: 0;
+  transform: translateX(24px);
+  background: var(--md-sys-color-on-primary);
+}
+html[data-design='md3'] :is(.error, .login-error, .journal-integrity.broken) {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+}
+html[data-design='md3'] :is(.empty, .loading) {
+  color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--md-sys-shape-medium);
+}
+html[data-design='md3'] .loading svg {
+  color: var(--md-sys-color-primary);
+}
+
+/* Popup menus, snackbar, plain tooltips, dialog. */
+html[data-design='md3'] .notifications-list {
+  border: 0;
+  border-radius: var(--md-sys-shape-medium);
+  background: var(--md-sys-color-surface-container);
+  box-shadow: var(--md-sys-elevation-3);
+}
+html[data-design='md3'] .notifications-list > button {
+  --md-button-container: var(--md-sys-color-surface-container);
+  --md-button-ink: var(--md-sys-color-on-surface);
+  border: 0;
+  border-radius: 0;
+  padding: 16px;
+  background: var(--md-button-container);
+  color: var(--md-button-ink);
+  font: var(--md-sys-typescale-body-medium);
+}
+html[data-design='md3'] .notifications-list > button.unread {
+  --md-button-container: var(--md-sys-color-secondary-container);
+  background: var(--md-button-container);
+}
+html[data-design='md3'] :is(.toast, .chart-tooltip, .viz-tooltip) {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  border: 0;
+  border-radius: var(--md-sys-shape-extra-small);
+  box-shadow: var(--md-sys-elevation-3);
+  font: var(--md-sys-typescale-body-medium);
+}
+html[data-design='md3'] :is(.chart-tooltip, .viz-tooltip) {
+  font: var(--md-sys-typescale-body-small);
+  box-shadow: var(--md-sys-elevation-0);
+}
+html[data-design='md3'] .toast {
+  min-height: 48px;
+  padding: 14px 16px;
+}
+html[data-design='md3'] .toast > :is(.text-button, .icon-button) {
+  --md-button-container: transparent;
+  --md-button-ink: var(--md-sys-color-inverse-primary);
+  color: var(--md-button-ink);
+  background: transparent;
+}
+html[data-design='md3'] .modal-backdrop {
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+}
+html[data-design='md3'] .modal.panel {
+  border-radius: var(--md-sys-shape-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: var(--md-sys-elevation-3);
+  --md-field-surface: var(--md-sys-color-surface-container-high);
+}
+html[data-design='md3'] .modal > .panel-heading {
+  padding: 24px 24px 16px;
+  border: 0;
+}
+html[data-design='md3'] .modal .panel-heading h2 {
+  font: var(--md-sys-typescale-headline-small);
+}
+html[data-design='md3'] .modal > .panel-body {
+  padding: 8px 24px 24px;
+}
+
+/* Charts: neutral surfaces and labels only; fills/strokes for data are untouched. */
+html[data-design='md3'] :is(.funnel-track, .health-track) {
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-small);
+}
+html[data-design='md3']
+  :is(
+    .health-ticks,
+    .chart-question,
+    .heatmap th,
+    .heatmap-legend,
+    .chart-legend,
+    .small-problem > small
+  ) {
+  color: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3']
+  :is(.funnel-step, .health-row, .attention-item, .small-problem, .small-problems) {
+  border-color: var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-small);
+}
+html[data-design='md3'] :is(.funnel-step, .attention-item, .small-problem):hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+html[data-design='md3'] :is(.funnel-label, .health-row > span, .small-problem > span) {
+  color: var(--md-sys-color-on-surface);
+}
+html[data-design='md3'] :is(.weekly-viz svg text, .sparkline-current-label) {
+  fill: var(--md-sys-color-on-surface-variant);
+}
+html[data-design='md3'] .small-problems:focus {
+  background: var(--md-sys-color-secondary-container);
+}
+
+@media (max-width: 1279px) {
+  html[data-design='md3'] .sidebar {
+    width: 208px;
+  }
+  html[data-design='md3'] .app-content {
+    margin-left: 208px;
+  }
+  html[data-design='md3'] .topbar {
+    gap: 12px;
+    padding-inline: 20px;
+  }
+  html[data-design='md3'] .demo-login-label {
+    display: none;
+  }
+  html[data-design='md3'] .metric-card {
+    padding: 20px;
+  }
+}
+@media (max-width: 1000px) {
+  html[data-design='md3'] .sidebar {
+    width: 180px;
+  }
+  html[data-design='md3'] .sidebar nav a {
+    padding-inline: 12px;
+  }
+  html[data-design='md3'] .app-content {
+    margin-left: 180px;
+  }
+}
+@media (max-width: 680px) {
+  html[data-design='md3'] .sidebar {
+    position: static;
+    width: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+  html[data-design='md3'] .sidebar nav a {
+    min-height: 48px;
+    padding: 12px;
+  }
+  html[data-design='md3'] .brand {
+    font-size: 16px;
+    margin: 0;
+  }
+  html[data-design='md3'] .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
+  html[data-design='md3'] .app-content {
+    margin-left: 0;
+  }
+  html[data-design='md3'] .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px 40px;
+    padding: 8px 16px;
+    gap: 8px;
+  }
+  html[data-design='md3'] .demo-role {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  html[data-design='md3'] .demo-role select {
+    width: 100%;
+  }
+  html[data-design='md3'] .notifications {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  html[data-design='md3'] .design-toggle {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  html[data-design='md3'] .user-select {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    width: 100%;
+  }
+  html[data-design='md3'] .user-select select {
+    width: 100%;
+  }
+  html[data-design='md3'] .notifications-list {
+    position: fixed;
+    top: 128px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: min(440px, 65dvh);
+  }
+  html[data-design='md3'] :is(h1, .page-title h1) {
+    font: var(--md-sys-typescale-headline-medium);
+  }
+  html[data-design='md3']
+    :is(
+      .panel-body,
+      .compose-form > .panel-body,
+      .detail-main .panel-body,
+      .detail-aside .panel-body
+    ) {
+    padding: 20px 16px;
+  }
+  html[data-design='md3'] .panel-heading {
+    padding: 16px;
+  }
+  html[data-design='md3'] .metric-card {
+    padding: 16px 12px;
+  }
+  html[data-design='md3'] .metric-value {
+    font-size: 30px;
+    line-height: 40px;
+  }
+  html[data-design='md3'] :is(.segmented, .type-field .segmented, .period-selector .segmented) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  html[data-design='md3'] .segmented button {
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-full) !important;
+    padding-inline: 12px;
+    flex: 1 1 auto;
+  }
+  html[data-design='md3'] .list-tabs button {
+    padding-inline: 12px;
+  }
+  html[data-design='md3'] .modal.panel {
+    max-width: calc(100vw - 24px);
+  }
+  html[data-design='md3'] .modal > .panel-heading {
+    padding: 24px 24px 16px;
+  }
+  html[data-design='md3'] .modal > .panel-body {
+    padding: 8px 24px 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-design='md3']
+    :is(button, .button, input, select, textarea, .sidebar nav a, .switch-track i) {
+    transition: none;
+  }
+}
+@media print {
+  html[data-design='md3'] {
+    background: white;
+  }
+  html[data-design='md3'] .app-content {
+    margin-left: 0;
+  }
+  html[data-design='md3'] :is(.panel, .metric-card) {
+    background: white;
+    box-shadow: none;
+  }
+  html[data-design='md3'] .design-toggle {
+    display: none;
+  }
+}
