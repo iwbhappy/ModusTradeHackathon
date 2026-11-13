@@ -28,3 +28,6 @@ docs/reports/codex-*.log
 !frontend/.env.example
 !backend/.env.example
 docs/reports/codex-*-last-message.md
+
+# Submission bundle
+*.bundle
