@@ -84,6 +84,10 @@ npm run dev
 
 Из `frontend/` запустите `npm run dev:mock` и откройте http://localhost:5173. Это статическая версия с данными в браузере и поиском по ключевым словам. Подробности и ограничения — в [архитектуре](docs/architecture.md#http-и-статический-mock).
 
+## Streamlit
+
+Интерфейс на демо-данных можно опубликовать в Streamlit Community Cloud: приложение `streamlit/streamlit_app.py` показывает готовую сборку `streamlit/build/index.html` (один файл, данные в браузере, поиск по ключевым словам, ИИ-кнопки по правилам). При деплое укажите репозиторий, ветку `main` и файл `streamlit/streamlit_app.py`; зависимости — `streamlit/requirements.txt`. После изменений интерфейса пересоберите: `npm run build:streamlit` из `frontend/` и закоммитьте `streamlit/build/index.html`. Локально: `pip install streamlit`, затем `streamlit run streamlit/streamlit_app.py`.
+
 ## Если что-то не так
 
 - **Порт занят:** остановите предыдущий экземпляр приложения (`Ctrl+C` в его терминале) и запустите снова. Бэкенду нужен порт 8000, фронтенду — 5173. Если Vite выбрал другой порт, освободите 5173 и перезапустите его.
