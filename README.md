@@ -2,6 +2,8 @@
 
 Система обратной связи сотрудников: у каждого обращения есть ответственный, срок и проверяемый результат. Повторяющиеся проблемы объединяются, локальный смысловой поиск помогает найти уже решённые вопросы.
 
+**Демо онлайн:** [iwbhappy-modustrade.streamlit.app](https://iwbhappy-modustrade.streamlit.app) — интерфейс на демо-данных, без установки.
+
 [Материалы для защиты](docs/pitch.md) · [Концепция](docs/concept.md) · [Архитектура и настройки](docs/architecture.md)
 
 ## Что установить
@@ -86,7 +88,7 @@ npm run dev
 
 ## Streamlit
 
-Интерфейс на демо-данных можно опубликовать в Streamlit Community Cloud: приложение `streamlit/streamlit_app.py` показывает готовую сборку `streamlit/build/index.html` (один файл, данные в браузере, поиск по ключевым словам, ИИ-кнопки по правилам). При деплое укажите репозиторий, ветку `main` и файл `streamlit/streamlit_app.py`; зависимости — `streamlit/requirements.txt`. После изменений интерфейса пересоберите: `npm run build:streamlit` из `frontend/` и закоммитьте `streamlit/build/index.html`. Локально: `pip install streamlit`, затем `streamlit run streamlit/streamlit_app.py`.
+Опубликованная версия: https://iwbhappy-modustrade.streamlit.app. Интерфейс на демо-данных опубликован в Streamlit Community Cloud: приложение `streamlit/streamlit_app.py` показывает готовую сборку `streamlit/build/index.html` (один файл, данные в браузере, поиск по ключевым словам, ИИ-кнопки по правилам). При деплое укажите репозиторий, ветку `main` и файл `streamlit/streamlit_app.py`; зависимости — `streamlit/requirements.txt`. После изменений интерфейса пересоберите: `npm run build:streamlit` из `frontend/` и закоммитьте `streamlit/build/index.html`. Локально: `pip install streamlit`, затем `streamlit run streamlit/streamlit_app.py`.
 
 ## Если что-то не так
 
